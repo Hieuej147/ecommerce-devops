@@ -1,0 +1,236 @@
+################################ BACKEND DEPLOYMENTS ################################
+
+#================== 1. API Gateway ==================#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: api-gateway
+spec:
+  replicas: {{ .Values.apiGateway.replicas }}
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: "{{ .Values.apiGateway.image }}:{{ .Values.apiGateway.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.apiGateway.port }}
+          env:
+            - name: PORT
+              value: "{{ .Values.apiGateway.port }}"
+            - name: NODE_ENV
+              value: "production"
+            - name: CATALOG_SERVICE_URL
+              value: "dns:///catalog:{{ .Values.catalog.port }}"
+            - name: ORDER_SERVICE_URL
+              value: "dns:///order:{{ .Values.order.port }}"
+            - name: PAYMENT_SERVICE_URL
+              value: "dns:///payment:{{ .Values.payment.port }}"
+            - name: USERS_SERVICE_URL
+              value: "dns:///users:{{ .Values.users.port }}"
+            - name: AGENT_SERVICE_URL
+              value: "http://agent-service:{{ .Values.agentService.port }}"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: DATABASE_URL
+            - name: CLERK_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: CLERK_SECRET_KEY
+            - name: CLERK_PUBLISHABLE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: CLERK_PUBLISHABLE_KEY
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: STRIPE_SECRET_KEY
+            - name: STRIPE_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: STRIPE_WEBHOOK_SECRET
+          resources:
+            {{- toYaml .Values.apiGateway.resources | nindent 12 }}
+
+---
+#================== 2. Catalog Service ==================#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: catalog
+spec:
+  replicas: {{ .Values.catalog.replicas }}
+  selector:
+    matchLabels:
+      app: catalog
+  template:
+    metadata:
+      labels:
+        app: catalog
+    spec:
+      containers:
+        - name: catalog
+          image: "{{ .Values.catalog.image }}:{{ .Values.catalog.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.catalog.port }}
+          env:
+            - name: GRPC_PORT
+              value: "{{ .Values.catalog.port }}"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: DATABASE_URL
+          resources:
+            {{- toYaml .Values.catalog.resources | nindent 12 }}
+
+---
+#================== 3. Order Service ==================#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: order
+spec:
+  replicas: {{ .Values.order.replicas }}
+  selector:
+    matchLabels:
+      app: order
+  template:
+    metadata:
+      labels:
+        app: order
+    spec:
+      containers:
+        - name: order
+          image: "{{ .Values.order.image }}:{{ .Values.order.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.order.port }}
+          env:
+            - name: GRPC_PORT
+              value: "{{ .Values.order.port }}"
+            - name: CATALOG_SERVICE_URL
+              value: "dns:///catalog:{{ .Values.catalog.port }}"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: DATABASE_URL
+          resources:
+            {{- toYaml .Values.order.resources | nindent 12 }}
+
+---
+#================== 4. Payment Service ==================#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: payment
+spec:
+  replicas: {{ .Values.payment.replicas }}
+  selector:
+    matchLabels:
+      app: payment
+  template:
+    metadata:
+      labels:
+        app: payment
+    spec:
+      containers:
+        - name: payment
+          image: "{{ .Values.payment.image }}:{{ .Values.payment.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.payment.port }}
+          env:
+            - name: GRPC_PORT
+              value: "{{ .Values.payment.port }}"
+            - name: ORDER_SERVICE_URL
+              value: "dns:///order:{{ .Values.order.port }}"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: DATABASE_URL
+            - name: STRIPE_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: STRIPE_SECRET_KEY
+            - name: STRIPE_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: STRIPE_WEBHOOK_SECRET
+          resources:
+            {{- toYaml .Values.payment.resources | nindent 12 }}
+
+---
+#================== 5. Users Service ==================#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: users
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: users
+spec:
+  replicas: {{ .Values.users.replicas }}
+  selector:
+    matchLabels:
+      app: users
+  template:
+    metadata:
+      labels:
+        app: users
+    spec:
+      containers:
+        - name: users
+          image: "{{ .Values.users.image }}:{{ .Values.users.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.users.port }}
+          env:
+            - name: GRPC_PORT
+              value: "{{ .Values.users.port }}"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: DATABASE_URL
+            - name: CLERK_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: CLERK_SECRET_KEY
+            - name: CLERK_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: CLERK_WEBHOOK_SECRET
+          resources:
+            {{- toYaml .Values.users.resources | nindent 12 }}

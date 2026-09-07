@@ -1,0 +1,148 @@
+################################ VALUES ################################
+
+namespace: ecommerce
+
+aws:
+  region: ap-southeast-1
+  account: "<YOUR_AWS_ACCOUNT_ID>"
+
+domain: "yourdomain.com"
+
+#================== API Gateway (NestJS REST - Port 3000) ==================#
+apiGateway:
+  replicas: 1
+  image: "<YOUR_AWS_ACCOUNT_ID>.dkr.ecr.ap-southeast-1.amazonaws.com/prod-ecommerce-api-gateway"
+  tag: "latest"
+  port: 3000
+  targetGroupArn: ""
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+#================== Catalog Microservice (gRPC - Port 5001) ==================#
+catalog:
+  replicas: 1
+  image: "<YOUR_AWS_ACCOUNT_ID>.dkr.ecr.ap-southeast-1.amazonaws.com/prod-ecommerce-catalog"
+  tag: "latest"
+  port: 5001
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+#================== Order Microservice (gRPC - Port 5002) ==================#
+order:
+  replicas: 1
+  image: "<YOUR_AWS_ACCOUNT_ID>.dkr.ecr.ap-southeast-1.amazonaws.com/prod-ecommerce-order"
+  tag: "latest"
+  port: 5002
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+#================== Payment Microservice (gRPC - Port 5003) ==================#
+payment:
+  replicas: 1
+  image: "<YOUR_AWS_ACCOUNT_ID>.dkr.ecr.ap-southeast-1.amazonaws.com/prod-ecommerce-payment"
+  tag: "latest"
+  port: 5003
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+#================== Users Microservice (gRPC - Port 5004) ==================#
+users:
+  replicas: 1
+  image: "<YOUR_AWS_ACCOUNT_ID>.dkr.ecr.ap-southeast-1.amazonaws.com/prod-ecommerce-users"
+  tag: "latest"
+  port: 5004
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+#================== AI Agent Service (NestJS - Port 3010) ==================#
+agentService:
+  replicas: 1
+  image: "<YOUR_AWS_ACCOUNT_ID>.dkr.ecr.ap-southeast-1.amazonaws.com/prod-ecommerce-agent-service"
+  tag: "latest"
+  port: 3010
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+
+#================== AI Agent Python Runtime (FastAPI - Port 8123) ==================#
+agentPython:
+  replicas: 1
+  image: "<YOUR_AWS_ACCOUNT_ID>.dkr.ecr.ap-southeast-1.amazonaws.com/prod-ecommerce-agent-python"
+  tag: "latest"
+  port: 8123
+  resources:
+    requests:
+      cpu: "300m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+#================== Customer Storefront (Next.js 16 Standalone - Port 3001) ==================#
+storefront:
+  replicas: 1
+  image: "<YOUR_AWS_ACCOUNT_ID>.dkr.ecr.ap-southeast-1.amazonaws.com/prod-ecommerce-storefront"
+  tag: "latest"
+  port: 3001
+  targetGroupArn: ""
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+#================== Admin Dashboard (Nginx Alpine SPA - Port 80) ==================#
+adminDashboard:
+  replicas: 1
+  image: "<YOUR_AWS_ACCOUNT_ID>.dkr.ecr.ap-southeast-1.amazonaws.com/prod-ecommerce-admin-dashboard"
+  tag: "latest"
+  port: 80
+  targetGroupArn: ""
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+
+# Ingress Configuration (AWS Load Balancer Controller)
+ingress:
+  enabled: true
+  className: "alb"
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'

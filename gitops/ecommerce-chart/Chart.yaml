@@ -1,0 +1,8 @@
+apiVersion: v2
+name: ecommerce-platform
+description: Production Helm chart for E-Commerce Microservices, Storefront, Admin Dashboard, and AI Agents
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+maintainers:
+  - name: E-Commerce DevOps Team

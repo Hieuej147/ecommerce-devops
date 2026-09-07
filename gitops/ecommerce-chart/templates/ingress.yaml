@@ -1,0 +1,60 @@
+{{- if .Values.ingress.enabled -}}
+################################ INGRESS ################################
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ecommerce-ingress
+  namespace: {{ .Values.namespace }}
+  annotations:
+    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    # 1. API Gateway
+    - host: "api.{{ .Values.domain }}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-gateway
+                port:
+                  number: {{ .Values.apiGateway.port }}
+
+    # 2. Customer Storefront (store.domain)
+    - host: "store.{{ .Values.domain }}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: storefront
+                port:
+                  number: {{ .Values.storefront.port }}
+
+    # 3. Customer Storefront (apex domain)
+    - host: "{{ .Values.domain }}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: storefront
+                port:
+                  number: {{ .Values.storefront.port }}
+
+    # 4. Admin Dashboard (admin.domain)
+    - host: "admin.{{ .Values.domain }}"
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: admin-dashboard
+                port:
+                  number: {{ .Values.adminDashboard.port }}
+{{- end }}

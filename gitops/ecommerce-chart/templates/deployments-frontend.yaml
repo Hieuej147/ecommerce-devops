@@ -1,0 +1,70 @@
+################################ FRONTEND DEPLOYMENTS ################################
+
+#================== 1. Customer Storefront ==================#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storefront
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: storefront
+spec:
+  replicas: {{ .Values.storefront.replicas }}
+  selector:
+    matchLabels:
+      app: storefront
+  template:
+    metadata:
+      labels:
+        app: storefront
+    spec:
+      containers:
+        - name: storefront
+          image: "{{ .Values.storefront.image }}:{{ .Values.storefront.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.storefront.port }}
+          env:
+            - name: PORT
+              value: "{{ .Values.storefront.port }}"
+            - name: NODE_ENV
+              value: "production"
+            - name: BACKEND_API_URL
+              value: "http://api-gateway:{{ .Values.apiGateway.port }}"
+            - name: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: CLERK_PUBLISHABLE_KEY
+            - name: NEXT_PUBLIC_ADMIN_DASHBOARD_URL
+              value: "https://admin.{{ .Values.domain }}"
+          resources:
+            {{- toYaml .Values.storefront.resources | nindent 12 }}
+
+---
+#================== 2. Admin Dashboard ==================#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: admin-dashboard
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: admin-dashboard
+spec:
+  replicas: {{ .Values.adminDashboard.replicas }}
+  selector:
+    matchLabels:
+      app: admin-dashboard
+  template:
+    metadata:
+      labels:
+        app: admin-dashboard
+    spec:
+      containers:
+        - name: admin-dashboard
+          image: "{{ .Values.adminDashboard.image }}:{{ .Values.adminDashboard.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.adminDashboard.port }}
+          resources:
+            {{- toYaml .Values.adminDashboard.resources | nindent 12 }}

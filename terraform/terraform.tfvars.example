@@ -1,0 +1,31 @@
+############################# TERRAFORM VARIABLES TEMPLATE ############################
+# Copy this file to 'terraform.tfvars' and fill in your actual AWS and domain details:
+#   cp terraform.tfvars.example terraform.tfvars
+
+project = {
+  name       = "ecommerce"
+  env        = "prod"                     # "prod", "lab", or "staging"
+  region     = "ap-southeast-1"           # Singapore region
+  account_id = "123456789012"             # 12-digit AWS Account ID
+  domain     = "yourdomain.com"           # Your purchased domain (e.g. my-shop.com)
+  admin_user = "admin"                    # Your AWS IAM username
+}
+
+tags = {
+  Environment = "production"
+  Project     = "ecommerce-platform"
+  ManagedBy   = "Terraform"
+}
+
+# Allowed IP CIDRs for administrative tools (ArgoCD)
+allowed_cidrs = ["0.0.0.0/0"]
+
+# List of GitHub repositories allowed to push images via AWS OIDC (no static AWS keys)
+github_repositories = [
+  "Hieuej147/ecommerce-backend",
+  "Hieuej147/-E-commerce",
+  "Hieuej147/dashboard-admin-ecommern"
+]
+
+# GitOps Helm Manifest Repository
+helm_repo = "https://github.com/Hieuej147/ecommerce-devops.git"

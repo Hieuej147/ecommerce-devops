@@ -1,0 +1,171 @@
+################################ SERVICES ################################
+
+#================== 1. API Gateway ==================#
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: api-gateway
+spec:
+  type: ClusterIP
+  selector:
+    app: api-gateway
+  ports:
+    - name: http
+      port: {{ .Values.apiGateway.port }}
+      targetPort: {{ .Values.apiGateway.port }}
+      protocol: TCP
+
+---
+#================== 2. Catalog Service (gRPC) ==================#
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: catalog
+spec:
+  type: ClusterIP
+  selector:
+    app: catalog
+  ports:
+    - name: grpc
+      port: {{ .Values.catalog.port }}
+      targetPort: {{ .Values.catalog.port }}
+      protocol: TCP
+
+---
+#================== 3. Order Service (gRPC) ==================#
+apiVersion: v1
+kind: Service
+metadata:
+  name: order
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: order
+spec:
+  type: ClusterIP
+  selector:
+    app: order
+  ports:
+    - name: grpc
+      port: {{ .Values.order.port }}
+      targetPort: {{ .Values.order.port }}
+      protocol: TCP
+
+---
+#================== 4. Payment Service (gRPC) ==================#
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: payment
+spec:
+  type: ClusterIP
+  selector:
+    app: payment
+  ports:
+    - name: grpc
+      port: {{ .Values.payment.port }}
+      targetPort: {{ .Values.payment.port }}
+      protocol: TCP
+
+---
+#================== 5. Users Service (gRPC) ==================#
+apiVersion: v1
+kind: Service
+metadata:
+  name: users
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: users
+spec:
+  type: ClusterIP
+  selector:
+    app: users
+  ports:
+    - name: grpc
+      port: {{ .Values.users.port }}
+      targetPort: {{ .Values.users.port }}
+      protocol: TCP
+
+---
+#================== 6. Agent Service (NestJS) ==================#
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: agent-service
+spec:
+  type: ClusterIP
+  selector:
+    app: agent-service
+  ports:
+    - name: http
+      port: {{ .Values.agentService.port }}
+      targetPort: {{ .Values.agentService.port }}
+      protocol: TCP
+
+---
+#================== 7. Agent Python (FastAPI) ==================#
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-python
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: agent-python
+spec:
+  type: ClusterIP
+  selector:
+    app: agent-python
+  ports:
+    - name: http
+      port: {{ .Values.agentPython.port }}
+      targetPort: {{ .Values.agentPython.port }}
+      protocol: TCP
+
+---
+#================== 8. Customer Storefront ==================#
+apiVersion: v1
+kind: Service
+metadata:
+  name: storefront
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: storefront
+spec:
+  type: ClusterIP
+  selector:
+    app: storefront
+  ports:
+    - name: http
+      port: {{ .Values.storefront.port }}
+      targetPort: {{ .Values.storefront.port }}
+      protocol: TCP
+
+---
+#================== 9. Admin Dashboard ==================#
+apiVersion: v1
+kind: Service
+metadata:
+  name: admin-dashboard
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: admin-dashboard
+spec:
+  type: ClusterIP
+  selector:
+    app: admin-dashboard
+  ports:
+    - name: http
+      port: {{ .Values.adminDashboard.port }}
+      targetPort: {{ .Values.adminDashboard.port }}
+      protocol: TCP

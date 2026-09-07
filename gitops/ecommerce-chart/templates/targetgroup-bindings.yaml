@@ -1,0 +1,48 @@
+################################ TARGET GROUP BINDINGS ################################
+
+#================== 1. API Gateway ==================#
+{{- if .Values.apiGateway.targetGroupArn }}
+apiVersion: elbv2.k8s.aws/v1beta1
+kind: TargetGroupBinding
+metadata:
+  name: api-gateway-tgb
+  namespace: {{ .Values.namespace }}
+spec:
+  serviceRef:
+    name: api-gateway
+    port: {{ .Values.apiGateway.port }}
+  targetGroupARN: {{ .Values.apiGateway.targetGroupArn }}
+  targetType: ip
+{{- end }}
+
+#================== 2. Storefront ==================#
+{{- if .Values.storefront.targetGroupArn }}
+---
+apiVersion: elbv2.k8s.aws/v1beta1
+kind: TargetGroupBinding
+metadata:
+  name: storefront-tgb
+  namespace: {{ .Values.namespace }}
+spec:
+  serviceRef:
+    name: storefront
+    port: {{ .Values.storefront.port }}
+  targetGroupARN: {{ .Values.storefront.targetGroupArn }}
+  targetType: ip
+{{- end }}
+
+#================== 3. Admin Dashboard ==================#
+{{- if .Values.adminDashboard.targetGroupArn }}
+---
+apiVersion: elbv2.k8s.aws/v1beta1
+kind: TargetGroupBinding
+metadata:
+  name: admin-dashboard-tgb
+  namespace: {{ .Values.namespace }}
+spec:
+  serviceRef:
+    name: admin-dashboard
+    port: {{ .Values.adminDashboard.port }}
+  targetGroupARN: {{ .Values.adminDashboard.targetGroupArn }}
+  targetType: ip
+{{- end }}

@@ -1,0 +1,86 @@
+################################ AI AGENT DEPLOYMENTS ################################
+
+#================== 1. Agent Service (NestJS Thread Manager) ==================#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-service
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: agent-service
+spec:
+  replicas: {{ .Values.agentService.replicas }}
+  selector:
+    matchLabels:
+      app: agent-service
+  template:
+    metadata:
+      labels:
+        app: agent-service
+    spec:
+      containers:
+        - name: agent-service
+          image: "{{ .Values.agentService.image }}:{{ .Values.agentService.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.agentService.port }}
+          env:
+            - name: PORT
+              value: "{{ .Values.agentService.port }}"
+            - name: AGENT_URL
+              value: "http://agent-python:{{ .Values.agentPython.port }}/dashboard"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: DATABASE_URL
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: REDIS_URL
+          resources:
+            {{- toYaml .Values.agentService.resources | nindent 12 }}
+
+---
+#================== 2. Agent Python (LangGraph Runtime) ==================#
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-python
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: agent-python
+spec:
+  replicas: {{ .Values.agentPython.replicas }}
+  selector:
+    matchLabels:
+      app: agent-python
+  template:
+    metadata:
+      labels:
+        app: agent-python
+    spec:
+      containers:
+        - name: agent-python
+          image: "{{ .Values.agentPython.image }}:{{ .Values.agentPython.tag }}"
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: {{ .Values.agentPython.port }}
+          env:
+            - name: PORT
+              value: "{{ .Values.agentPython.port }}"
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: OPENAI_API_KEY
+                  optional: true
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: GEMINI_API_KEY
+                  optional: true
+          resources:
+            {{- toYaml .Values.agentPython.resources | nindent 12 }}
