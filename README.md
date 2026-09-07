@@ -15,6 +15,17 @@ Complete Infrastructure as Code (Terraform) and GitOps Continuous Delivery (Argo
 
 ---
 
+## 📌 Architecture Reference & Modernization
+
+> 🔗 **Original Reference Project:** [Jayce-Anh/shopping-cart-project](https://github.com/Jayce-Anh/shopping-cart-project) (adapted from [sivaprasadreddy/spring-boot-microservices-series](https://github.com/sivaprasadreddy/spring-boot-microservices-series.git)).
+
+This repository modernizes and upgrades the DevOps infrastructure from the reference project:
+- **9 ECR Repositories** instead of 3 legacy Java services.
+- **AWS IAM OIDC for GitHub Actions** instead of an expensive EC2 GitLab runner ($0 vs $30/mo).
+- **PostgreSQL 16.3 RDS** instead of MySQL 8.0 for full Prisma ORM support.
+- **Host-based ALB Ingress** (`api.`, `store.`, `admin.`, `argocd.`) instead of path-based routing.
+- **Unified Helm Chart** deploying all 9 components via ArgoCD GitOps.
+
 ## 📁 Repository Structure
 
 ```
