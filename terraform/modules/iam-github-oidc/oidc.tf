@@ -91,6 +91,16 @@ data "aws_iam_policy_document" "github_actions_ecr" {
     ]
     resources = [var.kms_key_arn]
   }
+
+  statement {
+    sid    = "EKSAccess"
+    effect = "Allow"
+    actions = [
+      "eks:DescribeCluster",
+      "eks:ListClusters"
+    ]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_role_policy" "github_actions_ecr_policy" {

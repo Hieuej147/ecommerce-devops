@@ -190,3 +190,24 @@ spec:
       targetPort: {{ .Values.redis.port }}
       protocol: TCP
 {{- end }}
+
+{{- if .Values.inngest.enabled }}
+---
+#================== 11. In-Cluster Inngest Server ==================#
+apiVersion: v1
+kind: Service
+metadata:
+  name: inngest
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: inngest
+spec:
+  type: ClusterIP
+  selector:
+    app: inngest
+  ports:
+    - name: web
+      port: {{ .Values.inngest.port }}
+      targetPort: {{ .Values.inngest.port }}
+      protocol: TCP
+{{- end }}

@@ -21,14 +21,18 @@ spec:
       containers:
         - name: agent-service
           image: "{{ .Values.agentService.image }}:{{ .Values.agentService.tag }}"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.agentService.port }}
           env:
             - name: PORT
               value: "{{ .Values.agentService.port }}"
+            - name: AGENT_SERVICE_PORT
+              value: "{{ .Values.agentService.port }}"
+            - name: AGENT_INTERNAL_TOKEN
+              value: "development-agent-token"
             - name: AGENT_URL
-              value: "http://agent-python:{{ .Values.agentPython.port }}/dashboard"
+              value: "http://agent-python:{{ .Values.agentPython.port }}"
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
@@ -61,12 +65,16 @@ spec:
       containers:
         - name: agent-python
           image: "{{ .Values.agentPython.image }}:{{ .Values.agentPython.tag }}"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.agentPython.port }}
           env:
             - name: PORT
               value: "{{ .Values.agentPython.port }}"
+            - name: GATEWAY_URL
+              value: "http://api-gateway:3000/v1"
+            - name: AGENT_INTERNAL_TOKEN
+              value: "development-agent-token"
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:

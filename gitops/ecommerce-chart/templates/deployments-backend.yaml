@@ -21,24 +21,29 @@ spec:
       containers:
         - name: api-gateway
           image: "{{ .Values.apiGateway.image }}:{{ .Values.apiGateway.tag }}"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.apiGateway.port }}
           env:
             - name: PORT
               value: "{{ .Values.apiGateway.port }}"
-            - name: NODE_ENV
-              value: "production"
-            - name: CATALOG_SERVICE_URL
-              value: "dns:///catalog:{{ .Values.catalog.port }}"
-            - name: ORDER_SERVICE_URL
-              value: "dns:///order:{{ .Values.order.port }}"
-            - name: PAYMENT_SERVICE_URL
-              value: "dns:///payment:{{ .Values.payment.port }}"
-            - name: USERS_SERVICE_URL
-              value: "dns:///users:{{ .Values.users.port }}"
+            - name: CATALOG_GRPC_URL
+              value: "catalog:{{ .Values.catalog.port }}"
+            - name: ORDER_GRPC_URL
+              value: "order:{{ .Values.order.port }}"
+            - name: PAYMENT_GRPC_URL
+              value: "payment:{{ .Values.payment.port }}"
+            - name: USERS_GRPC_URL
+              value: "users:{{ .Values.users.port }}"
+            - name: CLERK_AUTHORIZED_PARTIES
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: CLERK_AUTHORIZED_PARTIES
             - name: AGENT_SERVICE_URL
               value: "http://agent-service:{{ .Values.agentService.port }}"
+            - name: AGENT_INTERNAL_TOKEN
+              value: "development-agent-token"
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
@@ -54,6 +59,16 @@ spec:
                 secretKeyRef:
                   name: ecommerce-secrets
                   key: CLERK_PUBLISHABLE_KEY
+            - name: CLERK_JWT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: CLERK_JWT_KEY
+            - name: CLERK_WEBHOOK_SIGNING_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: CLERK_WEBHOOK_SIGNING_SECRET
             - name: STRIPE_SECRET_KEY
               valueFrom:
                 secretKeyRef:
@@ -64,6 +79,20 @@ spec:
                 secretKeyRef:
                   name: ecommerce-secrets
                   key: STRIPE_WEBHOOK_SECRET
+            - name: INNGEST_SIGNING_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: INNGEST_SIGNING_KEY
+            - name: INNGEST_EVENT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: INNGEST_EVENT_KEY
+            - name: INNGEST_BASE_URL
+              value: "http://inngest:{{ .Values.inngest.port }}"
+            - name: INNGEST_SERVE_ORIGIN
+              value: "http://api-gateway:{{ .Values.apiGateway.port }}/v1/inngest"
           resources:
             {{- toYaml .Values.apiGateway.resources | nindent 12 }}
 
@@ -89,12 +118,14 @@ spec:
       containers:
         - name: catalog
           image: "{{ .Values.catalog.image }}:{{ .Values.catalog.tag }}"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.catalog.port }}
           env:
             - name: GRPC_PORT
               value: "{{ .Values.catalog.port }}"
+            - name: CATALOG_GRPC_URL
+              value: "0.0.0.0:{{ .Values.catalog.port }}"
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
@@ -125,14 +156,14 @@ spec:
       containers:
         - name: order
           image: "{{ .Values.order.image }}:{{ .Values.order.tag }}"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.order.port }}
           env:
-            - name: GRPC_PORT
-              value: "{{ .Values.order.port }}"
-            - name: CATALOG_SERVICE_URL
-              value: "dns:///catalog:{{ .Values.catalog.port }}"
+            - name: ORDER_GRPC_URL
+              value: "0.0.0.0:{{ .Values.order.port }}"
+            - name: CATALOG_GRPC_URL
+              value: "catalog:{{ .Values.catalog.port }}"
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
@@ -163,14 +194,14 @@ spec:
       containers:
         - name: payment
           image: "{{ .Values.payment.image }}:{{ .Values.payment.tag }}"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.payment.port }}
           env:
-            - name: GRPC_PORT
-              value: "{{ .Values.payment.port }}"
-            - name: ORDER_SERVICE_URL
-              value: "dns:///order:{{ .Values.order.port }}"
+            - name: PAYMENT_GRPC_URL
+              value: "0.0.0.0:{{ .Values.payment.port }}"
+            - name: ORDER_GRPC_URL
+              value: "order:{{ .Values.order.port }}"
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
@@ -211,26 +242,18 @@ spec:
       containers:
         - name: users
           image: "{{ .Values.users.image }}:{{ .Values.users.tag }}"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.users.port }}
           env:
             - name: GRPC_PORT
               value: "{{ .Values.users.port }}"
+            - name: USERS_GRPC_URL
+              value: "0.0.0.0:{{ .Values.users.port }}"
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
                   name: ecommerce-secrets
                   key: DATABASE_URL
-            - name: CLERK_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: ecommerce-secrets
-                  key: CLERK_SECRET_KEY
-            - name: CLERK_WEBHOOK_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: ecommerce-secrets
-                  key: CLERK_WEBHOOK_SECRET
           resources:
             {{- toYaml .Values.users.resources | nindent 12 }}

@@ -1,0 +1,66 @@
+################################ INNGEST SERVER DEPLOYMENT ################################
+{{- if .Values.inngest.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inngest
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: inngest
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: inngest
+  template:
+    metadata:
+      labels:
+        app: inngest
+    spec:
+      containers:
+        - name: inngest
+          image: "{{ .Values.inngest.image }}"
+          imagePullPolicy: IfNotPresent
+          command:
+            - inngest
+            - start
+            - -u
+            - "http://api-gateway:{{ .Values.apiGateway.port }}/v1/inngest"
+            - --host
+            - "0.0.0.0"
+            - --port
+            - "{{ .Values.inngest.port }}"
+            - --signing-key
+            - "$(INNGEST_SIGNING_KEY)"
+            - --event-key
+            - "$(INNGEST_EVENT_KEY)"
+            - --postgres-uri
+            - "$(DATABASE_URL)"
+            - --redis-uri
+            - "$(REDIS_URL)"
+            - --poll-interval
+            - "5"
+          env:
+            - name: INNGEST_SIGNING_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: INNGEST_SIGNING_KEY
+            - name: INNGEST_EVENT_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: INNGEST_EVENT_KEY
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ecommerce-secrets
+                  key: DATABASE_URL
+            - name: REDIS_URL
+              value: "redis://redis:{{ .Values.redis.port }}"
+          ports:
+            - containerPort: {{ .Values.inngest.port }}
+              name: web
+          resources:
+            {{- toYaml .Values.inngest.resources | nindent 12 }}
+{{- end }}

@@ -45,45 +45,17 @@ resource "aws_security_group_rule" "node_group_from_cluster" {
   description              = "Allow traffic from EKS cluster security group"
 }
 
-# Allow external ALB to reach service / platform pods (match old node_groups.ingress_rules)
-resource "aws_security_group_rule" "node_group_from_alb_services" {
-  type                     = "ingress"
-  from_port                = 4000
-  to_port                  = 6000
-  protocol                 = "tcp"
-  source_security_group_id = var.eks_alb_sg_id
-  security_group_id        = aws_security_group.node_group.id
-  description              = "Allow traffic from external ALB to service pods"
-}
+# Allow external ALB to reach specific pod ports (Least Privilege: Admin: 80, API Gateway: 3000, Storefront: 3001)
+resource "aws_security_group_rule" "node_group_from_alb" {
+  for_each = toset(["80", "3000", "3001"])
 
-resource "aws_security_group_rule" "node_group_from_alb_argocd" {
   type                     = "ingress"
-  from_port                = 8080
-  to_port                  = 8080
+  from_port                = tonumber(each.value)
+  to_port                  = tonumber(each.value)
   protocol                 = "tcp"
   source_security_group_id = var.eks_alb_sg_id
   security_group_id        = aws_security_group.node_group.id
-  description              = "Allow traffic from external ALB to ArgoCD pods"
-}
-
-resource "aws_security_group_rule" "node_group_from_alb_grafana" {
-  type                     = "ingress"
-  from_port                = 8090
-  to_port                  = 8090
-  protocol                 = "tcp"
-  source_security_group_id = var.eks_alb_sg_id
-  security_group_id        = aws_security_group.node_group.id
-  description              = "Allow traffic from external ALB to Grafana pods"
-}
-
-resource "aws_security_group_rule" "node_group_from_alb_kibana" {
-  type                     = "ingress"
-  from_port                = 5601
-  to_port                  = 5601
-  protocol                 = "tcp"
-  source_security_group_id = var.eks_alb_sg_id
-  security_group_id        = aws_security_group.node_group.id
-  description              = "Allow traffic from external ALB to Kibana pods"
+  description              = "Allow traffic from external ALB to pod port ${each.value}"
 }
 
 #========================== Cluster API Access ===========================#

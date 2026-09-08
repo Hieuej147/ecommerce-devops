@@ -21,7 +21,7 @@ spec:
       containers:
         - name: storefront
           image: "{{ .Values.storefront.image }}:{{ .Values.storefront.tag }}"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.storefront.port }}
           env:
@@ -63,7 +63,7 @@ spec:
       containers:
         - name: admin-dashboard
           image: "{{ .Values.adminDashboard.image }}:{{ .Values.adminDashboard.tag }}"
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: {{ .Values.adminDashboard.port }}
           resources:
