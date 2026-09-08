@@ -1,44 +1,49 @@
-# ☁️ E-Commerce Cloud DevOps & GitOps Platform
+# ☁️ E-Commerce DevOps & Cloud Infrastructure
 
 [![AWS EKS](https://img.shields.io/badge/Amazon%20EKS-v1.30-FF9900?logo=amazoneks&logoColor=white)](https://aws.amazon.com/eks/)
 [![Terraform](https://img.shields.io/badge/Terraform-v1.9+-844FBA?logo=terraform&logoColor=white)](https://www.terraform.io/)
-[![Kubernetes](https://img.shields.io/badge/Kubernetes-v1.30-326CE5?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 [![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions%20OIDC-2088FF?logo=githubactions&logoColor=white)](https://github.com/features/actions)
 [![Cloudflare](https://img.shields.io/badge/Edge%20Security-Cloudflare%20Zero%20Trust-F38020?logo=cloudflare&logoColor=white)](https://www.cloudflare.com/)
 
-> **Complete Infrastructure as Code (IaC) & Continuous Delivery Platform** for an enterprise-grade, event-driven E-Commerce microservices ecosystem running on **Amazon Web Services (AWS)** with **Cloudflare Edge SSL & Zero Trust**.
+> **Note from the author:** I'm a **Fullstack Web Developer**, not a DevOps engineer. This repository documents how I set up a production AWS infrastructure for my e-commerce project. The deployment is fully automated — once provisioned, you only need to `git push` your code and GitHub Actions handles the rest.
 
 ---
 
-## 📑 Table of Contents
-- [1. System Architecture](#1-system-architecture)
-- [2. The 4 Ecosystem Repositories](#2-the-4-ecosystem-repositories)
-- [3. Key Architectural Decisions & Optimizations](#3-key-architectural-decisions--optimizations)
-- [4. Cost Breakdown & Budget Management](#4-cost-breakdown--budget-management)
-- [5. Repository Structure](#5-repository-structure)
-- [6. Complete Step-by-Step Deployment Guide](#6-complete-step-by-step-deployment-guide)
-  - [Prerequisites](#prerequisites)
-  - [Phase 1: Terraform Infrastructure Provisioning](#phase-1-terraform-infrastructure-provisioning)
-  - [Phase 2: EKS Access & Cluster Connectivity](#phase-2-eks-access--cluster-connectivity)
-  - [Phase 3: Deploy In-Cluster Services (Redis & Inngest)](#phase-3-deploy-in-cluster-services-redis--inngest)
-  - [Phase 4: Cloudflare DNS, SSL & Zero Trust Security](#phase-4-cloudflare-dns-ssl--zero-trust-security)
-  - [Phase 5: GitHub Actions CI/CD Configuration](#phase-5-github-actions-cicd-configuration)
-  - [Phase 6: Verification & Health Checks](#phase-6-verification--health-checks)
-- [7. Operational Runbook & Common Commands](#7-operational-runbook--common-commands)
-- [8. Infrastructure Teardown & Clean Up](#8-infrastructure-teardown--clean-up)
+## 📌 Architecture Reference
+
+> **Architecture Reference:** Infrastructure patterns inspired by [Jayce-Anh/shopping-cart-project](https://github.com/Jayce-Anh/shopping-cart-project) (originally based on [sivaprasadreddy/spring-boot-microservices-series](https://github.com/sivaprasadreddy/spring-boot-microservices-series.git)).
+>
+> Key differences from the reference:
+> - Replaced ArgoCD with lightweight **GitHub Actions + kubectl rollout** (saves ~$20/month RAM on small clusters).
+> - Added **Cloudflare Zero Trust** email OTP protection for the Admin Dashboard ($0 cost).
+> - Added **self-hosted Inngest** for durable background jobs (no external SaaS subscription).
+> - Replaced AWS ElastiCache with **in-cluster Redis 7 Alpine** ($0 cost).
 
 ---
 
-## 1. System Architecture
+## 🔗 Ecosystem Repositories
+
+This project is part of an integrated 4-part microservices platform:
+
+| Repository | Tech Stack | Role & Link |
+| :--- | :--- | :--- |
+| **Backend Monorepo** | NestJS 11, gRPC, PostgreSQL, Prisma, Inngest | RESTful API Gateway, gRPC microservices, Stripe & Clerk webhooks. <br>🔗 Repo: [`ecommerce-backend`](https://github.com/Hieuej147/ecommerce-backend.git) |
+| **Customer Storefront** | Next.js 16, React 19, Tailwind v4, Three.js | Customer shop, 3D interactive hero canvas, cart, Stripe checkout. <br>🔗 Repo: [`-E-commerce`](https://github.com/Hieuej147/-E-commerce.git) |
+| **Admin Dashboard** | React 19, Vite, TypeScript, Cloudflare Zero Trust | Backoffice management, real-time KPI metrics, orders & catalog CRUD. <br>🔗 Repo: [`dashboard-admin-ecommern`](https://github.com/Hieuej147/dashboard-admin-ecommern.git) |
+| **DevOps & GitOps** *(This Repo)* | Terraform, Helm, AWS EKS, AWS ECR, OIDC | Infrastructure as Code, OIDC authentication, ECR registries, Kubernetes manifests. <br>🔗 Repo: [`ecommerce-devops`](https://github.com/Hieuej147/ecommerce-devops.git) |
+
+---
+
+## 🏗️ System Architecture
 
 ```
                                 [ End Users & Admins ]
                                           │
                         ┌─────────────────┴─────────────────┐
                         │   Cloudflare Edge Network (SSL)   │
-                        │    - store.hieudev.click (Public) │
-                        │    - api.hieudev.click (Public)   │
-                        │    - admin.hieudev.click (OTP)    │
+                        │  - store.yourdomain.com (Public)  │
+                        │  - api.yourdomain.com (Public)    │
+                        │  - admin.yourdomain.com (OTP)     │
                         └─────────────────┬─────────────────┘
                                           │ HTTP (Port 80)
                                           ▼
@@ -50,13 +55,13 @@
             ┌─────────────┴──────┐            │            │
             ▼                    ▼            ▼            ▼
    ┌─────────────────┐  ┌─────────────┐  ┌─────────┐  ┌───────────────┐
-   │ store.tg (3001) │  │ admin.tg (80)│ │ api.tg  │  │ inngest.tg    │
+   │ Storefront:3001 │  │ Admin:80    │  │ API:3000│  │ Inngest:8288  │
    └────────┬────────┘  └──────┬──────┘  └───┬─────┘  └──────┬────────┘
             │                  │             │               │
 ════════════╪══════════════════╪═════════════╪═══════════════╪══════════════
 AWS VPC     │                  │             │               │
-  EKS Cluster: ecommerce (v1.30)             │               │
-  Namespace: ecommerce                       │               │
+  EKS Cluster (v1.30)         │             │               │
+  Namespace: ecommerce        │             │               │
             │                  │             │               │
             ▼                  ▼             ▼               ▼
      ┌─────────────┐    ┌─────────────┐ ┌─────────┐    ┌─────────────┐
@@ -83,58 +88,23 @@ AWS VPC     │                  │             │               │
 
 ---
 
-## 2. The 4 Ecosystem Repositories
+## 💰 Estimated Monthly Cost
 
-| Repository | Tech Stack | Role & Link |
+| Service | Estimated Cost | Notes |
 | :--- | :--- | :--- |
-| **DevOps & GitOps** *(This Repo)* | Terraform, Helm, AWS EKS, AWS ECR, Bash | Infrastructure as Code, OIDC authentication, ECR registries, Kubernetes manifests. <br>🔗 [`ecommerce-devops`](https://github.com/Hieuej147/ecommerce-devops.git) |
-| **Backend Monorepo** | NestJS 11, gRPC, PostgreSQL, Prisma, Inngest | RESTful API Gateway, 5 gRPC microservices, Python AI agent, Stripe & Clerk webhooks. <br>🔗 [`ecommerce-backend`](https://github.com/Hieuej147/ecommerce-backend.git) |
-| **Customer Storefront** | Next.js 16, React 19, Tailwind v4, Three.js | Customer storefront, 3D interactive hero canvas, cart, Stripe checkout, internal proxy. <br>🔗 [`-E-commerce`](https://github.com/Hieuej147/-E-commerce.git) |
-| **Admin Dashboard** | React 19, Vite, TypeScript, Cloudflare Zero Trust | Backoffice management, real-time KPI metrics, orders/catalog CRUD, CopilotKit AI. <br>🔗 [`dashboard-admin-ecommern`](https://github.com/Hieuej147/dashboard-admin-ecommern.git) |
+| **Amazon EKS** (Control Plane) | ~$73/month | Standard EKS fee |
+| **EKS Node Group** (2x `t3.small`) | ~$30/month | 2 vCPU, 2GB RAM each |
+| **Amazon RDS PostgreSQL** (`db.t4g.micro`) | ~$18/month | Single-AZ, 20GB gp3 |
+| **Application Load Balancer** | ~$18/month | Single shared ALB |
+| **Amazon ECR** (9 repos) | ~$0.10/month | Lifecycle policy: keep 2 latest |
+| **In-Cluster Redis** | **$0** | Replaces $17/mo ElastiCache |
+| **Cloudflare SSL + Zero Trust** | **$0** | Free tier (up to 50 users) |
+| **GitHub Actions CI/CD** | **$0** | Free for public repos |
+| **Total** | **~$139/month** | |
 
 ---
 
-## 3. Key Architectural Decisions & Optimizations
-
-1. **AWS IAM OIDC for GitHub Actions (Zero Static Keys)**:
-   - Traditional setups use long-lived `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` stored in CI/CD secrets (high security liability).
-   - This platform implements **AWS IAM OpenID Connect (OIDC)**. GitHub Actions runners assume `arn:aws:iam::<ACCOUNT_ID>:role/prod-ecommerce-github-actions-role` via cryptographic JWT tokens. No credentials are stored.
-2. **Lean EKS Cluster Management (Direct GitOps Rollout)**:
-   - Rather than running heavy GitOps operators like ArgoCD (which consume >1.2GB RAM across Redis, Repo Server, Application Controller, and Dex), deployments are updated directly by GitHub Actions using `kubectl rollout restart` with rolling zero-downtime Pod replacement.
-   - Saves ~$20/month and keeps EKS nodes lean and stable.
-3. **Self-Hosted Inngest Server**:
-   - Inngest is deployed inside the EKS cluster (`inngest start`) backed by Amazon RDS PostgreSQL and in-cluster Redis for event persistence.
-   - Zero external SaaS subscription cost; fully capable of running durable background workflows, retries, and step functions.
-4. **Cloudflare Zero Trust Perimeter Defense**:
-   - The Admin Dashboard is protected behind Cloudflare Access Edge.
-   - Any access to `admin.hieudev.click` requires an email One-Time Passcode (OTP). Unauthorized bots, scanners, and attackers are blocked before their packets ever reach AWS.
-5. **In-Cluster Redis 7 (Alpine)**:
-   - Replaced managed AWS ElastiCache ($17+/month) with a lightweight, persistent in-cluster Redis Pod, saving 100% of managed caching costs.
-6. **Next.js Standalone Mode + Internal Rewrites**:
-   - The Storefront uses Next.js standalone output, reducing container image size from 1.2GB to under 180MB.
-   - All backend API calls go through internal Next.js rewrites (`/api/backend/*` -> `http://api-gateway:3000/*`), eliminating CORS errors completely.
-
----
-
-## 4. Cost Breakdown & Budget Management
-
-This infrastructure was designed to fit comfortably within the AWS promotional credit budget ($139.00 credit allocation):
-
-| Service | Configuration / Tier | Estimated Monthly Cost | Notes |
-| :--- | :--- | :--- | :--- |
-| **Amazon EKS** | 1 Control Plane Cluster | ~$73.00 / month | Standard EKS control plane fee ($0.10/hour). |
-| **EKS Node Group** | 2x `t3.small` (2 vCPU, 2GB RAM each) | ~$30.40 / month | Spot/On-Demand Singapore (`ap-southeast-1`). |
-| **Amazon RDS PostgreSQL** | 1x `db.t4g.micro` (Single-AZ, 20GB gp3) | ~$17.50 / month | Micro instance hosting all service schemas. |
-| **AWS Application Load Balancer** | 1 ALB (Shared by all services) | ~$18.00 / month | Single ALB with host-based rules (avoids paying per-service ALB). |
-| **Amazon ECR** | 9 Repositories with Lifecycle Policy | ~$0.10 / month | Lifecycle policy keeps only the latest 2 image tags per repo. |
-| **In-Cluster Redis** | Lightweight container on EKS | **$0.00** | Eliminates $17/mo AWS ElastiCache. |
-| **Cloudflare Edge SSL & Zero Trust** | Free Plan (Up to 50 users) | **$0.00** | Provides Edge SSL, CDN caching, and OTP firewall. |
-| **GitHub Actions Runners** | Public Repositories (Ubuntu-latest) | **$0.00** | Free tier for standard CI/CD builds. |
-| **Total Estimated Cost** | | **~$139.00 / month** | Covered by AWS Credits. |
-
----
-
-## 5. Repository Structure
+## 📁 Repository Structure
 
 ```
 ecommerce-devops/
@@ -142,237 +112,197 @@ ecommerce-devops/
 │   ├── main.tf                       # Root infrastructure orchestration
 │   ├── variable.tf                   # Input variable definitions
 │   ├── outputs.tf                    # Generated ARNs, ALB DNS, and Role info
-│   ├── provider.tf                   # AWS provider and caller identity
+│   ├── provider.tf                   # AWS provider configuration
 │   ├── version.tf                    # Terraform & provider version constraints
-│   ├── terraform.tfvars.example      # Configuration template
+│   ├── terraform.tfvars.example      # Configuration template (copy this)
 │   └── modules/
-│       ├── vpc/                      # Multi-AZ VPC, Public/Private subnets, NAT Gateway
-│       ├── kms/                      # KMS Customer Managed Keys for encryption
-│       ├── ecr/                      # 9 ECR Repositories with 2-image lifecycle policy
-│       ├── iam-github-oidc/          # AWS IAM OIDC Provider & GitHub Actions Role
-│       ├── database/rds/             # Amazon RDS PostgreSQL 16.15
-│       ├── eks/                      # Amazon EKS v1.30 & Node Group (t3.small)
-│       ├── alb/                      # Application Load Balancer with Host-Based routing
+│       ├── vpc/                      # Multi-AZ VPC, Public/Private subnets, NAT
+│       ├── kms/                      # KMS encryption keys
+│       ├── ecr/                      # 9 ECR repositories with lifecycle policy
+│       ├── iam-github-oidc/          # AWS IAM OIDC for GitHub Actions (no static keys)
+│       ├── database/rds/             # Amazon RDS PostgreSQL 16
+│       ├── eks/                      # Amazon EKS v1.30 & Node Group
+│       ├── alb/                      # Application Load Balancer with host-based routing
 │       └── secret-manager/           # AWS Secrets Manager
-├── gitops/
-│   └── ecommerce-chart/              # Kubernetes Helm Manifests
-│       ├── Chart.yaml
-│       ├── values.yaml               # Config for 9 microservices + Redis + Inngest
-│       └── templates/
-│           ├── namespace.yaml        # ecommerce namespace
-│           ├── services.yaml         # Internal ClusterIP & NodePort services
-│           ├── deployment-redis.yaml # In-cluster Redis 7 Alpine cache
-│           ├── deployment-inngest.yaml # Self-hosted Inngest Server
-│           ├── deployments-backend.yaml# api-gateway, catalog, order, payment, users
-│           ├── deployments-ai.yaml   # agent-service, agent-python
-│           ├── deployments-frontend.yaml # storefront (Next.js), admin-dashboard (Nginx)
-│           ├── ingress.yaml          # Ingress routing rules
-│           └── targetgroup-bindings.yaml # AWS ALB TargetGroupBindings
-└── scripts/                          # Automated setup and maintenance scripts
+└── gitops/
+    └── ecommerce-chart/              # Helm chart for all Kubernetes resources
+        ├── Chart.yaml
+        ├── values.yaml               # Default values for 11 pods
+        ├── values.prod.yaml          # Production overrides
+        └── templates/
+            ├── namespace.yaml
+            ├── services.yaml          # ClusterIP & NodePort services
+            ├── deployment-redis.yaml   # In-cluster Redis 7 Alpine
+            ├── deployment-inngest.yaml # Self-hosted Inngest server
+            ├── deployments-backend.yaml # api-gateway, catalog, order, payment, users
+            ├── deployments-ai.yaml     # agent-service, agent-python
+            ├── deployments-frontend.yaml # storefront, admin-dashboard
+            └── targetgroup-bindings.yaml # AWS ALB TargetGroupBindings
 ```
 
 ---
 
-## 6. Complete Step-by-Step Deployment Guide
+## 🚀 Step-by-Step Deployment Guide
 
 ### Prerequisites
-Before running commands, ensure you have the following CLI tools installed:
-- **AWS CLI v2** (`aws --version`) configured with your credentials.
-- **Terraform v1.9+** (`terraform version`).
-- **kubectl v1.30+** (`kubectl version --client`).
-- **Helm v3+** (`helm version`).
-- A registered domain name on **Cloudflare** (e.g. `hieudev.click`).
+
+Install the following CLI tools:
+- **AWS CLI v2** ([docs.aws.amazon.com/cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html))
+- **Terraform v1.9+** ([terraform.io/downloads](https://www.terraform.io/downloads))
+- **kubectl v1.30+** ([kubernetes.io/docs](https://kubernetes.io/docs/tasks/tools/))
+- **Helm v3+** ([helm.sh/docs](https://helm.sh/docs/intro/install/))
+- A registered domain name on **Cloudflare** (e.g. `yourdomain.com`)
 
 ---
 
-### Phase 1: Terraform Infrastructure Provisioning
+### Phase 1: Provision AWS Infrastructure (Terraform)
 
-1. Navigate to the terraform directory:
-   ```bash
-   cd terraform
-   cp terraform.tfvars.example terraform.tfvars
-   ```
+```bash
+cd terraform
+cp terraform.tfvars.example terraform.tfvars
+```
 
-2. Edit `terraform.tfvars` with your AWS details:
-   ```hcl
-   account_id  = "123456789012"        # Your 12-digit AWS Account ID
-   admin_user  = "your-iam-username"   # Your AWS IAM username
-   region      = "ap-southeast-1"      # Preferred AWS Region
-   domain      = "yourdomain.com"      # Your registered domain name
-   environment = "prod"
-   ```
+Edit `terraform.tfvars` with your details:
+```hcl
+account_id  = "123456789012"        # Your 12-digit AWS Account ID
+admin_user  = "your-iam-username"   # Your AWS IAM username
+region      = "ap-southeast-1"      # Your preferred AWS region
+domain      = "yourdomain.com"      # Your registered domain
+environment = "prod"
+```
 
-3. Initialize and apply the Terraform configuration:
-   ```bash
-   terraform init
-   terraform plan -out=tfplan
-   terraform apply tfplan
-   ```
+Then run:
+```bash
+terraform init
+terraform plan -out=tfplan
+terraform apply tfplan
+```
 
-4. Upon completion, note the important outputs:
-   - `github_actions_role_arn`: `arn:aws:iam::<ACCOUNT_ID>:role/prod-ecommerce-github-actions-role`
-   - `alb_dns_name`: `prod-ecommerce-alb-xxxx.ap-southeast-1.elb.amazonaws.com`
-   - `rds_endpoint`: PostgreSQL endpoint hostname.
+Note the outputs — you'll need `github_actions_role_arn`, `alb_dns_name`, and `rds_endpoint`.
 
 ---
 
-### Phase 2: EKS Access & Cluster Connectivity
+### Phase 2: Connect to Your EKS Cluster
 
-1. Generate your local kubeconfig to connect to the EKS cluster:
-   ```bash
-   aws eks update-kubeconfig --region ap-southeast-1 --name ecommerce
-   ```
+```bash
+# Generate kubeconfig
+aws eks update-kubeconfig --region ap-southeast-1 --name ecommerce
 
-2. Verify cluster communication:
-   ```bash
-   kubectl get nodes -o wide
-   ```
-   *Expected result: 2 nodes in `Ready` status.*
+# Verify nodes are ready
+kubectl get nodes -o wide
+```
 
-3. Verify that the GitHub Actions IAM Role has standard Admin Access via EKS Access Entry:
-   ```bash
-   aws eks list-access-entries --cluster-name ecommerce
-   ```
+Expected: 2 nodes in `Ready` status.
 
 ---
 
-### Phase 3: Deploy In-Cluster Services (Redis & Inngest)
+### Phase 3: Deploy In-Cluster Services
 
-1. Create the `ecommerce` namespace:
-   ```bash
-   kubectl create namespace ecommerce || true
-   ```
+```bash
+# Create namespace
+kubectl create namespace ecommerce || true
 
-2. Deploy Redis 7 cache and Inngest Server:
-   ```bash
-   kubectl apply -f ../gitops/ecommerce-chart/templates/deployment-redis.yaml
-   kubectl apply -f ../gitops/ecommerce-chart/templates/deployment-inngest.yaml
-   ```
+# Deploy Redis cache and Inngest event server
+kubectl apply -f ../gitops/ecommerce-chart/templates/deployment-redis.yaml
+kubectl apply -f ../gitops/ecommerce-chart/templates/deployment-inngest.yaml
 
-3. Verify Redis and Inngest are running:
-   ```bash
-   kubectl get pods -n ecommerce -l app=redis
-   kubectl get pods -n ecommerce -l app=inngest
-   ```
+# Verify they're running
+kubectl get pods -n ecommerce
+```
 
 ---
 
-### Phase 4: Cloudflare DNS, SSL & Zero Trust Security
+### Phase 4: Configure Cloudflare DNS & Zero Trust
 
-1. **DNS CNAME Records**:
-   In your Cloudflare DNS Management console for `hieudev.click`, add the following 4 CNAME records:
-   - `store` -> `prod-ecommerce-alb-xxxx.ap-southeast-1.elb.amazonaws.com` (Proxy status: **Proxied 🟧**)
-   - `api` -> `prod-ecommerce-alb-xxxx.ap-southeast-1.elb.amazonaws.com` (Proxy status: **Proxied 🟧**)
-   - `admin` -> `prod-ecommerce-alb-xxxx.ap-southeast-1.elb.amazonaws.com` (Proxy status: **Proxied 🟧**)
-   - `inngest` -> `prod-ecommerce-alb-xxxx.ap-southeast-1.elb.amazonaws.com` (Proxy status: **Proxied 🟧**)
+1. **DNS Records** — In your Cloudflare dashboard, add 4 CNAME records pointing to your ALB DNS name:
+   - `store` → `<alb_dns_name>` (Proxied 🟧)
+   - `api` → `<alb_dns_name>` (Proxied 🟧)
+   - `admin` → `<alb_dns_name>` (Proxied 🟧)
+   - `inngest` → `<alb_dns_name>` (Proxied 🟧)
 
-2. **Cloudflare SSL Encryption**:
-   - Go to **SSL/TLS** -> Select **Flexible** mode.
-   - Cloudflare provides free SSL to browsers (`https://`), and communicates with the AWS ALB over Port 80 HTTP.
+2. **SSL Mode** — Go to **SSL/TLS** → Select **Flexible** mode (Cloudflare handles HTTPS, ALB receives HTTP).
 
-3. **Cloudflare Zero Trust (Admin Backoffice Protection)**:
-   - Open **Zero Trust Dashboard** -> **Access** -> **Applications** -> Click **Add an application**.
-   - Select **Self-hosted**.
-   - Application Name: `Admin Backoffice`.
-   - Domain: `admin.hieudev.click`.
-   - Policy: Action `Allow`, Rule: Include `Emails` -> enter your admin email.
-   - *Result: Access to `admin.hieudev.click` now requires an email verification PIN.*
+3. **Zero Trust Protection** (for Admin Dashboard) — Go to **Zero Trust** → **Access** → **Applications** → **Add application**:
+   - Type: Self-hosted
+   - Domain: `admin.yourdomain.com`
+   - Policy: Allow emails matching your admin email
+   - *Result: Admin access requires email OTP verification*
 
 ---
 
-### Phase 5: GitHub Actions CI/CD Configuration
+### Phase 5: Configure GitHub Actions Secrets
 
-Configure the required Repository Secrets in each of your 3 GitHub repositories:
+In each of your 3 application repositories, go to **Settings** > **Secrets and variables** > **Actions** > **New repository secret**:
 
-#### 1. Repository: `ecommerce-backend`
-Navigate to **Settings** > **Secrets and variables** > **Actions** > **New repository secret**:
-- `AWS_ROLE_ARN`: `arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/prod-ecommerce-github-actions-role`
+#### `ecommerce-backend`
+- `AWS_ROLE_ARN`: `arn:aws:iam::<YOUR_ACCOUNT_ID>:role/prod-ecommerce-github-actions-role`
 
-#### 2. Repository: `-E-commerce` (Storefront)
-Navigate to **Settings** > **Secrets and variables** > **Actions** > **New repository secret**:
-- `AWS_ROLE_ARN`: `arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/prod-ecommerce-github-actions-role`
+#### `-E-commerce` (Storefront)
+- `AWS_ROLE_ARN`: *(same as above)*
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: `pk_test_...`
 - `NEXT_PUBLIC_API_URL`: `/api/backend`
 - `NEXT_PUBLIC_ADMIN_DASHBOARD_URL`: `https://admin.yourdomain.com`
 
-#### 3. Repository: `dashboard-admin-ecommern` (Admin Dashboard)
-Navigate to **Settings** > **Secrets and variables** > **Actions** > **New repository secret**:
-- `AWS_ROLE_ARN`: `arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/prod-ecommerce-github-actions-role`
+#### `dashboard-admin-ecommern` (Admin Dashboard)
+- `AWS_ROLE_ARN`: *(same as above)*
 - `VITE_CLERK_PUBLISHABLE_KEY`: `pk_test_...`
 - `VITE_API_BASE_URL`: `https://api.yourdomain.com/v1`
 - `VITE_STOREFRONT_URL`: `https://store.yourdomain.com`
 
 ---
 
-### Phase 6: Verification & Health Checks
+### Phase 6: Deploy & Verify
 
-Once GitHub Actions completes its automated build and deployment:
+Push code to `main` on any of the 3 repositories. GitHub Actions will automatically:
+1. Authenticate to AWS via OIDC (no static keys)
+2. Build Docker images and push to Amazon ECR
+3. Connect to EKS and execute a zero-downtime rolling restart
 
-1. Check all running Pods in the `ecommerce` namespace:
-   ```bash
-   kubectl get pods -n ecommerce
-   ```
-   *Expected: All 11 pods running (`1/1 Running`).*
+Verify everything is running:
+```bash
+kubectl get pods -n ecommerce
+# Expected: 11 pods in Running status (1/1)
+```
 
-2. Verify endpoint connectivity:
-   - Storefront: `https://store.hieudev.click`
-   - Admin Dashboard: `https://admin.hieudev.click`
-   - API Gateway Health: `https://api.hieudev.click/health`
-   - Inngest Dashboard: `https://inngest.hieudev.click`
+Test your endpoints:
+- Storefront: `https://store.yourdomain.com`
+- Admin Dashboard: `https://admin.yourdomain.com`
+- API Health: `https://api.yourdomain.com/health`
 
 ---
 
-## 7. Operational Runbook & Common Commands
+## 🔧 Useful Commands
 
-### View Live Pod Logs
 ```bash
-# API Gateway logs
+# View pod logs
 kubectl logs -n ecommerce -l app=api-gateway -f --tail=100
 
-# Order service logs
-kubectl logs -n ecommerce -l app=order -f --tail=100
-
-# Inngest event worker logs
-kubectl logs -n ecommerce -l app=inngest -f --tail=100
-```
-
-### Manually Restart a Service
-```bash
+# Restart a specific service
 kubectl rollout restart deployment/<service-name> -n ecommerce
-kubectl rollout status deployment/<service-name> -n ecommerce
-```
 
-### Port Forwarding for Local Debugging
-```bash
-# Access in-cluster Redis directly
+# Port-forward Redis for local debugging
 kubectl port-forward svc/redis 6379:6379 -n ecommerce
 
-# Access in-cluster Inngest UI directly
+# Port-forward Inngest UI
 kubectl port-forward svc/inngest 8288:8288 -n ecommerce
 ```
 
 ---
 
-## 8. Infrastructure Teardown & Clean Up
+## 🗑️ Infrastructure Teardown
 
 > [!CAUTION]
-> Running `terraform destroy` will terminate all AWS resources (EKS Cluster, RDS Database, VPC, Load Balancer) and permanently delete data. Only perform this when you are done demonstrating the project and wish to stop all AWS billing.
+> Running `terraform destroy` will **permanently delete** all AWS resources (EKS, RDS, VPC, ALB) and all data. Only do this when you're completely done with the project.
 
-### Step 1: Clean up Kubernetes Services & Load Balancers
-Before destroying Terraform, delete the Kubernetes namespace to release TargetGroup bindings:
 ```bash
+# Step 1: Delete Kubernetes namespace (releases ALB TargetGroup bindings)
 kubectl delete namespace ecommerce --timeout=120s
-```
 
-### Step 2: Destroy Terraform Resources
-```bash
+# Step 2: Destroy all Terraform resources
 cd terraform
 terraform destroy -auto-approve
-```
 
-### Step 3: Remove ECR Images (Optional)
-If any ECR repositories contain images that block deletion:
-```bash
+# Step 3 (Optional): Clear ECR images if deletion fails
 for repo in api-gateway catalog order payment users agent-service agent-python storefront admin-dashboard; do
   aws ecr batch-delete-image --repository-name prod-ecommerce-$repo \
     --image-ids "$(aws ecr list-images --repository-name prod-ecommerce-$repo --query 'imageIds[*]' --output json)" 2>/dev/null || true
