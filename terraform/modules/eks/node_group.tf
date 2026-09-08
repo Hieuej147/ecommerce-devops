@@ -8,7 +8,7 @@ data "aws_ssm_parameter" "eks_ami_release_version" {
 #================== Node Group ==================#
 resource "aws_eks_node_group" "node_group" {
   cluster_name    = aws_eks_cluster.eks.name
-  node_group_name = "${var.project.env}-${var.project.name}-eks-node-group"
+  node_group_name = "${var.project.env}-${var.project.name}-ng"
   node_role_arn   = aws_iam_role.node_group.arn
   subnet_ids      = var.eks_subnet_ids
   ami_type        = "AL2023_x86_64_STANDARD"
