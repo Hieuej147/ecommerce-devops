@@ -86,9 +86,9 @@ module "eks" {
   eks_allowed_sg = []
   allowed_cidrs  = var.allowed_cidrs
   eks_alb_sg_id  = module.alb.lb_sg_id
-  eks_admin_access = {
-    admin_user = data.aws_iam_user.admin_user.arn
-  }
+  eks_admin_access = var.project.admin_user != "" && var.project.admin_user != "root" ? {
+    admin_user = "arn:aws:iam::${var.project.account_id}:user/${var.project.admin_user}"
+  } : {}
 }
 
 #================= Helm Addons & ArgoCD =================#

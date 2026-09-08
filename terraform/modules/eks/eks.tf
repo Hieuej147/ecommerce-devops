@@ -3,7 +3,7 @@
 #================ EKS Cluster =================#
 resource "aws_eks_cluster" "eks" {
   name     = var.project.name
-  version  = "1.35"
+  version  = "1.30"
   role_arn = aws_iam_role.eks.arn
 
   vpc_config {
