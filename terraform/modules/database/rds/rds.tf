@@ -70,7 +70,7 @@ resource "aws_db_instance" "db" {
   allow_major_version_upgrade = false
   auto_minor_version_upgrade  = true
 
-  backup_retention_period = 7
+  backup_retention_period = 0
 
   tags = merge(var.tags, {
     Name = "${var.project.env}-${var.project.name}-postgres"

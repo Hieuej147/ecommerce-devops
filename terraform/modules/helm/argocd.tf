@@ -47,23 +47,7 @@ resource "helm_release" "argocd" {
     },
     {
       name  = "server.certificate.enabled"
-      value = "true"
-    },
-    {
-      name  = "server.certificate.domain"
-      value = "argocd.${var.project.env}-${var.project.name}.${var.project.domain}"
-    },
-    {
-      name  = "server.certificate.issuer.group"
-      value = "cert-manager.io"
-    },
-    {
-      name  = "server.certificate.issuer.kind"
-      value = "ClusterIssuer"
-    },
-    {
-      name  = "server.certificate.issuer.name"
-      value = "selfsigned-issuer"
+      value = "false"
     },
     {
       name  = "configs.secret.argocdServerAdminPasswordMtime"

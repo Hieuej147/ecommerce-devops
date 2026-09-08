@@ -94,7 +94,7 @@ resource "aws_iam_role_policy" "inventory_sqs" {
           "sqs:GetQueueUrl",
           "sqs:ChangeMessageVisibility",
         ]
-        Resource = ["${var.helm_sqs_queue_arn}"]
+        Resource = [var.helm_sqs_queue_arn != "" ? var.helm_sqs_queue_arn : "arn:aws:sqs:${var.project.region}:${var.project.account_id}:*"]
       },
     ]
   })
@@ -118,7 +118,7 @@ resource "aws_iam_role_policy" "order_sqs" {
           "sqs:GetQueueUrl",
           "sqs:ChangeMessageVisibility",
         ]
-        Resource = ["${var.helm_sqs_queue_arn}"]
+        Resource = [var.helm_sqs_queue_arn != "" ? var.helm_sqs_queue_arn : "arn:aws:sqs:${var.project.region}:${var.project.account_id}:*"]
       },
     ]
   })
