@@ -49,7 +49,7 @@ resource "aws_db_instance" "db" {
   storage_throughput = null
 
   engine                 = "postgres"
-  engine_version         = "16.3"
+  engine_version         = "16.15"
   instance_class         = var.instance_class
   db_name                = replace("${var.project.name}", "-", "_")
   username               = "postgres"
