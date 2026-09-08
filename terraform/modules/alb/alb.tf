@@ -12,28 +12,11 @@ resource "aws_lb" "lb" {
   })
 }
 
-# HTTP Listener - Redirect 80 to 443
+# HTTP Listener - Port 80 (Routed from Cloudflare Edge Proxy with Flexible SSL)
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.lb.arn
   port              = 80
   protocol          = "HTTP"
-
-  default_action {
-    type = "redirect"
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
-    }
-  }
-}
-
-# HTTPS Listener - 443 with ACM Certificate
-resource "aws_lb_listener" "https" {
-  load_balancer_arn = aws_lb.lb.arn
-  port              = 443
-  protocol          = "HTTPS"
-  certificate_arn   = var.alb_dns_cert
 
   default_action {
     type = "fixed-response"

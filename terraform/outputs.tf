@@ -15,10 +15,6 @@ output "alb_dns_name" {
   value       = module.alb.lb_dns_name
 }
 
-output "route53_nameservers" {
-  description = "Route 53 NameServers to delegate your domain to (or set as CNAME in Cloudflare)"
-  value       = module.hosted_zone.name_servers
-}
 
 output "eks_cluster_name" {
   description = "EKS Cluster Name for kubectl access: aws eks update-kubeconfig --name <cluster_name> --region <region>"

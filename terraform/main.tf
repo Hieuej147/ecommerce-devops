@@ -1,21 +1,6 @@
 ######################################## MAIN ##########################################
 
-#================= Route 53 Hosted Zone =================#
-module "hosted_zone" {
-  source          = "./modules/route53"
-  project         = var.project
-  tags            = var.tags
-  r53_domain_name = var.project.domain
-}
-
-#================= ACM Certificate =================#
-module "acm" {
-  source             = "./modules/acm"
-  project            = var.project
-  tags               = var.tags
-  acm_hosted_zone_id = module.hosted_zone.hosted_zone_id
-}
-
+# Note: SSL termination and DNS management are handled at Edge by Cloudflare (Free Universal SSL + Zero Trust)
 #================= KMS Key =================#
 module "kms" {
   source  = "./modules/kms"
@@ -74,7 +59,6 @@ module "alb" {
   tags           = var.tags
   alb_vpc_id     = module.vpc.vpc_id
   alb_subnet_ids = module.vpc.public_subnet_ids
-  alb_dns_cert   = module.acm.cert_arns
   allowed_cidrs  = var.allowed_cidrs
 }
 

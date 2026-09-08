@@ -2,7 +2,7 @@
 
 # Rule 1: Storefront (store.yourdomain.com and apex yourdomain.com)
 resource "aws_lb_listener_rule" "https_storefront" {
-  listener_arn = aws_lb_listener.https.arn
+  listener_arn = aws_lb_listener.http.arn
   priority     = 10
 
   action {
@@ -23,7 +23,7 @@ resource "aws_lb_listener_rule" "https_storefront" {
 # Rule 2: Admin Dashboard (admin.yourdomain.com)
 # Note: Traffic reaching ALB here has already passed through Cloudflare Zero Trust OTP at Edge
 resource "aws_lb_listener_rule" "https_admin" {
-  listener_arn = aws_lb_listener.https.arn
+  listener_arn = aws_lb_listener.http.arn
   priority     = 20
 
   action {
@@ -42,7 +42,7 @@ resource "aws_lb_listener_rule" "https_admin" {
 
 # Rule 3: API Gateway (api.yourdomain.com)
 resource "aws_lb_listener_rule" "https_api_gateway" {
-  listener_arn = aws_lb_listener.https.arn
+  listener_arn = aws_lb_listener.http.arn
   priority     = 30
 
   action {
@@ -61,7 +61,7 @@ resource "aws_lb_listener_rule" "https_api_gateway" {
 
 # Rule 4: ArgoCD (argocd.yourdomain.com)
 resource "aws_lb_listener_rule" "https_argocd" {
-  listener_arn = aws_lb_listener.https.arn
+  listener_arn = aws_lb_listener.http.arn
   priority     = 40
 
   action {

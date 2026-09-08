@@ -24,10 +24,6 @@ variable "alb_subnet_ids" {
   description = "Public subnet IDs for the ALB"
 }
 
-variable "alb_dns_cert" {
-  type        = string
-  description = "ACM certificate ARN for the HTTPS listener"
-}
 
 variable "allowed_cidrs" {
   type        = list(string)
