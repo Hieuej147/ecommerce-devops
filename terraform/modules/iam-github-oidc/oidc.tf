@@ -36,7 +36,10 @@ data "aws_iam_policy_document" "github_assume_role" {
     condition {
       test     = "StringLike"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = [for repo in var.github_repositories : "repo:${repo}:*"]
+      values = flatten([
+        [for repo in var.github_repositories : "repo:${repo}:*"],
+        [for repo in var.github_repositories : "repo:${split("/", repo)[0]}*${trimprefix(split("/", repo)[1], "-")}*:*"]
+      ])
     }
   }
 }
