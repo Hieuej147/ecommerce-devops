@@ -81,8 +81,6 @@ resource "helm_release" "argocd" {
   depends_on = [
     terraform_data.eks_nodes,
     helm_release.load_balancer_controller,
-    helm_release.cert_manager,
-    kubernetes_manifest.cert_manager_cluster_issuer,
     aws_iam_role.argocd,
     aws_eks_pod_identity_association.argocd,
   ]
@@ -114,37 +112,30 @@ resource "kubernetes_secret_v1" "argocd_repo" {
   depends_on = [helm_release.argocd]
 }
 
-#============ ArgoCD Target Group Binding =============#
-resource "kubernetes_manifest" "argocd_tgb" {
-  manifest = {
-    apiVersion = "elbv2.k8s.aws/v1beta1"
-    kind       = "TargetGroupBinding"
-    metadata = {
-      name      = "argocd-tgb"
-      namespace = "argocd"
-    }
-    spec = {
-      serviceRef = {
-        name = "argocd-server"
-        port = 443
-      }
-      targetGroupARN = "${var.helm_argocd_tg_arn}"
-      targetType     = "ip"
-    }
-  }
-
-  timeouts {
-    delete = "5m"
-  }
-
+#============ ArgoCD Target Group Binding & Root Application =============#
+resource "terraform_data" "argocd_bootstrap" {
   depends_on = [
     helm_release.argocd,
     helm_release.load_balancer_controller,
+    kubernetes_secret_v1.argocd_repo,
   ]
-}
 
-resource "kubernetes_manifest" "argocd_root_application" {
-  manifest = yamldecode(<<YAML
+  provisioner "local-exec" {
+    command = <<-EOT
+      aws eks update-kubeconfig --name ${var.helm_eks_cluster} --region ${var.project.region}
+      cat <<YAML | kubectl apply -f -
+apiVersion: elbv2.k8s.aws/v1beta1
+kind: TargetGroupBinding
+metadata:
+  name: argocd-tgb
+  namespace: argocd
+spec:
+  serviceRef:
+    name: argocd-server
+    port: 443
+  targetGroupARN: ${var.helm_argocd_tg_arn}
+  targetType: ip
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -155,7 +146,7 @@ spec:
   source:
     repoURL: '${var.helm_repo_url}'
     targetRevision: '${var.helm_target_revision}'
-    path: 'argocd/'
+    path: 'gitops/argocd/'
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: argocd
@@ -164,10 +155,6 @@ spec:
       prune: true
       selfHeal: true
 YAML
-  )
-
-  depends_on = [
-    helm_release.argocd,
-    kubernetes_secret_v1.argocd_repo,
-  ]
+    EOT
+  }
 }

@@ -11,13 +11,13 @@ resource "aws_security_group" "sg_db" {
 }
 
 resource "aws_security_group_rule" "ingress_postgres" {
+  count                    = length(var.rds_allowed_sg)
   type                     = "ingress"
   from_port                = 5432
   to_port                  = 5432
   protocol                 = "tcp"
   security_group_id        = aws_security_group.sg_db.id
-  source_security_group_id = each.value
-  for_each                 = toset(var.rds_allowed_sg)
+  source_security_group_id = var.rds_allowed_sg[count.index]
   description              = "Allow PostgreSQL access from allowed security group"
 }
 

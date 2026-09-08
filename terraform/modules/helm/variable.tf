@@ -23,6 +23,16 @@ variable "helm_eks_cluster" {
   description = "EKS cluster name"
 }
 
+variable "helm_eks_cluster_endpoint" {
+  type        = string
+  description = "EKS cluster endpoint"
+}
+
+variable "helm_eks_cluster_ca_cert" {
+  type        = string
+  description = "EKS cluster CA certificate (base64)"
+}
+
 variable "helm_eks_node_group_id" {
   type        = string
   description = "EKS node group ID. Implicit destroy-order lock so nodes stay until Helm/K8s resources are gone."

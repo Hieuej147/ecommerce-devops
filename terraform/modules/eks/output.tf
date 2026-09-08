@@ -12,6 +12,10 @@ output "eks_cluster_endpoint" {
   value = aws_eks_cluster.eks.endpoint
 }
 
+output "eks_cluster_certificate_authority_data" {
+  value = aws_eks_cluster.eks.certificate_authority[0].data
+}
+
 output "eks_cluster_arn" {
   value = aws_eks_cluster.eks.arn
 }

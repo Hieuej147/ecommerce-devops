@@ -96,8 +96,10 @@ module "helm" {
   source                 = "./modules/helm"
   project                = var.project
   tags                   = var.tags
-  helm_eks_cluster       = module.eks.eks_cluster_name
-  helm_eks_node_group_id = module.eks.node_group_id
+  helm_eks_cluster          = module.eks.eks_cluster_name
+  helm_eks_cluster_endpoint = module.eks.eks_cluster_endpoint
+  helm_eks_cluster_ca_cert  = module.eks.eks_cluster_certificate_authority_data
+  helm_eks_node_group_id    = module.eks.node_group_id
   helm_vpc_id            = module.vpc.vpc_id
   kms_key                = module.kms.key_arn
   helm_repo_url          = var.helm_repo
