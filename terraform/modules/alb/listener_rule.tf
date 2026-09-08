@@ -13,8 +13,7 @@ resource "aws_lb_listener_rule" "https_storefront" {
   condition {
     host_header {
       values = [
-        "store.${var.project.domain}",
-        var.project.domain
+        "store.${var.project.domain}"
       ]
     }
   }
