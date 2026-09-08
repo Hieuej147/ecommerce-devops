@@ -22,8 +22,8 @@ Complete Infrastructure as Code (Terraform) and GitOps Continuous Delivery (Argo
 This repository modernizes and upgrades the DevOps infrastructure from the reference project:
 - **9 ECR Repositories** instead of 3 legacy Java services.
 - **AWS IAM OIDC for GitHub Actions** instead of an expensive EC2 GitLab runner ($0 vs $30/mo).
-- **PostgreSQL 16.3 RDS** instead of MySQL 8.0 for full Prisma ORM support.
-- **Host-based ALB Ingress** (`api.`, `store.`, `admin.`, `argocd.`) instead of path-based routing.
+- **PostgreSQL 16.15 RDS** instead of MySQL 8.0 for full Prisma ORM support.
+- **Host-based ALB Ingress** (`api.`, `store.`, `admin.`, `argocd.`) integrated with Cloudflare Edge SSL.
 - **Unified Helm Chart** deploying all 9 components via ArgoCD GitOps.
 
 ## 📁 Repository Structure
@@ -42,11 +42,9 @@ ecommerce-devops/
 │       ├── kms/                      # KMS Customer Managed Key for encryption
 │       ├── ecr/                      # 9 ECR Repositories with lifecycle cleanup
 │       ├── iam-github-oidc/          # AWS IAM OIDC Provider & Role for GitHub Actions (No static keys)
-│       ├── database/rds/             # Amazon RDS PostgreSQL 16
-│       ├── eks/                      # Amazon EKS v1.30 Cluster & Managed Node Group
+│       ├── database/rds/             # Amazon RDS PostgreSQL 16.15
+│       ├── eks/                      # Amazon EKS v1.30 Cluster & Managed Node Group (t3.small Free Tier)
 │       ├── alb/                      # Application Load Balancer with Host-Based routing
-│       ├── route53/                  # Route 53 DNS zone
-│       ├── acm/                      # Wildcard SSL (*.yourdomain.com) certificate
 │       ├── secret-manager/           # AWS Secrets Manager for credentials
 │       └── helm/                     # EKS Addons: AWS Load Balancer Controller, ArgoCD
 └── gitops/
