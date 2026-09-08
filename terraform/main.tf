@@ -89,16 +89,7 @@ module "rds" {
   kms_key        = module.kms.key_arn
 }
 
-#================= Cache (ElastiCache Valkey / Redis) =================#
-module "valkey" {
-  source           = "./modules/database/elasticache"
-  project          = var.project
-  tags             = var.tags
-  cache_vpc_id     = module.vpc.vpc_id
-  cache_subnet_ids = module.vpc.private_subnet_ids
-  cache_allowed_sg = [module.eks.node_group_sg_id]
-  kms_key          = module.kms.key_arn
-}
+# Note: Cache is hosted directly inside EKS using a lightweight redis:7-alpine Pod (100% Free, saving $15/mo)
 
 #================= EKS Cluster =================#
 module "eks" {

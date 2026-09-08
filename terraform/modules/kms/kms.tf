@@ -129,25 +129,6 @@ resource "aws_kms_key_policy" "kms" {
             }
           }
         },
-        # ElastiCache
-        {
-          Sid    = "ElastiCacheViaService"
-          Effect = "Allow"
-          Principal = {
-            AWS = "*"
-          }
-          Action = [
-            "kms:Encrypt", "kms:Decrypt", "kms:ReEncrypt*",
-            "kms:GenerateDataKey*", "kms:CreateGrant", "kms:DescribeKey"
-          ]
-          Resource = "*"
-          Condition = {
-            StringEquals = {
-              "kms:CallerAccount" = "${var.project.account_id}"
-              "kms:ViaService"    = "elasticache.${var.project.region}.amazonaws.com"
-            }
-          }
-        },
         # ECR
         {
           Sid    = "ECRViaService"

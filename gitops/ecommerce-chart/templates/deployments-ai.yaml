@@ -35,10 +35,7 @@ spec:
                   name: ecommerce-secrets
                   key: DATABASE_URL
             - name: REDIS_URL
-              valueFrom:
-                secretKeyRef:
-                  name: ecommerce-secrets
-                  key: REDIS_URL
+              value: "redis://redis:{{ .Values.redis.port }}"
           resources:
             {{- toYaml .Values.agentService.resources | nindent 12 }}
 

@@ -107,6 +107,19 @@ agentPython:
       cpu: "1000m"
       memory: "1Gi"
 
+#================== In-Cluster Redis Cache (Port 6379 - $0 Free) ==================#
+redis:
+  enabled: true
+  image: "redis:7-alpine"
+  port: 6379
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+
 #================== Customer Storefront (Next.js 16 Standalone - Port 3001) ==================#
 storefront:
   replicas: 1

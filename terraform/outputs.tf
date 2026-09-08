@@ -30,11 +30,6 @@ output "rds_endpoint" {
   value       = module.rds.rds_endpoint
 }
 
-output "valkey_endpoint" {
-  description = "ElastiCache Valkey/Redis Endpoint"
-  value       = module.valkey.valkey_endpoint
-}
-
 output "target_group_arns" {
   description = "Target Group ARNs for Kubernetes TargetGroupBindings"
   value       = module.alb.tg_arns

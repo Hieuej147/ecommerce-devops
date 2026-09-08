@@ -169,3 +169,24 @@ spec:
       port: {{ .Values.adminDashboard.port }}
       targetPort: {{ .Values.adminDashboard.port }}
       protocol: TCP
+
+{{- if .Values.redis.enabled }}
+---
+#================== 10. In-Cluster Redis Cache ==================#
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: redis
+spec:
+  type: ClusterIP
+  selector:
+    app: redis
+  ports:
+    - name: redis
+      port: {{ .Values.redis.port }}
+      targetPort: {{ .Values.redis.port }}
+      protocol: TCP
+{{- end }}

@@ -43,7 +43,6 @@ ecommerce-devops/
 │       ├── ecr/                      # 9 ECR Repositories with lifecycle cleanup
 │       ├── iam-github-oidc/          # AWS IAM OIDC Provider & Role for GitHub Actions (No static keys)
 │       ├── database/rds/             # Amazon RDS PostgreSQL 16
-│       ├── database/elasticache/     # Amazon ElastiCache Valkey / Redis 7.2
 │       ├── eks/                      # Amazon EKS v1.30 Cluster & Managed Node Group
 │       ├── alb/                      # Application Load Balancer with Host-Based routing
 │       ├── route53/                  # Route 53 DNS zone
@@ -55,10 +54,11 @@ ecommerce-devops/
     │   └── apps.yaml                 # ArgoCD Root Application (App-of-Apps)
     └── ecommerce-chart/              # Production Helm Chart
         ├── Chart.yaml
-        ├── values.yaml               # Values for all 9 components
+        ├── values.yaml               # Values for all 9 components + in-cluster Redis
         └── templates/
             ├── namespace.yaml
             ├── services.yaml         # ClusterIP services
+            ├── deployment-redis.yaml     # In-cluster Redis 7 Alpine cache ($0 free)
             ├── deployments-backend.yaml  # api-gateway, catalog, order, payment, users
             ├── deployments-ai.yaml       # agent-service, agent-python
             ├── deployments-frontend.yaml # storefront, admin-dashboard
@@ -90,7 +90,7 @@ terraform apply
 Review the planned resources and type `yes`. Terraform will provision:
 - VPC & NAT Gateway
 - EKS Cluster & Node Group
-- RDS PostgreSQL 16 & ElastiCache Valkey
+- RDS PostgreSQL 16 (In-cluster Redis 7 Pod for cache - $0 free)
 - 9 ECR Repositories
 - AWS IAM OIDC Provider for GitHub Actions
 - Application Load Balancer & Target Groups
