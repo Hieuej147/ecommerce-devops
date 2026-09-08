@@ -3,8 +3,9 @@ set -euo pipefail
 
 export DOCKER_BUILDKIT=0
 
-REGISTRY="004285426030.dkr.ecr.ap-southeast-1.amazonaws.com"
-REGION="ap-southeast-1"
+REGION="${AWS_REGION:-ap-southeast-1}"
+ACCOUNT_ID="${AWS_ACCOUNT_ID:-$(aws sts get-caller-identity --query Account --output text)}"
+REGISTRY="${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
 
 echo "========================================================"
 echo "🚀 STEP 1: Login Docker to AWS ECR (${REGION})"

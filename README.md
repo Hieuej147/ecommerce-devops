@@ -195,10 +195,10 @@ Before running commands, ensure you have the following CLI tools installed:
 
 2. Edit `terraform.tfvars` with your AWS details:
    ```hcl
-   account_id  = "004285426030"
-   admin_user  = "hieubc"
-   region      = "ap-southeast-1"
-   domain      = "hieudev.click"
+   account_id  = "123456789012"        # Your 12-digit AWS Account ID
+   admin_user  = "your-iam-username"   # Your AWS IAM username
+   region      = "ap-southeast-1"      # Preferred AWS Region
+   domain      = "yourdomain.com"      # Your registered domain name
    environment = "prod"
    ```
 
@@ -286,21 +286,21 @@ Configure the required Repository Secrets in each of your 3 GitHub repositories:
 
 #### 1. Repository: `ecommerce-backend`
 Navigate to **Settings** > **Secrets and variables** > **Actions** > **New repository secret**:
-- `AWS_ROLE_ARN`: `arn:aws:iam::004285426030:role/prod-ecommerce-github-actions-role`
+- `AWS_ROLE_ARN`: `arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/prod-ecommerce-github-actions-role`
 
 #### 2. Repository: `-E-commerce` (Storefront)
 Navigate to **Settings** > **Secrets and variables** > **Actions** > **New repository secret**:
-- `AWS_ROLE_ARN`: `arn:aws:iam::004285426030:role/prod-ecommerce-github-actions-role`
+- `AWS_ROLE_ARN`: `arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/prod-ecommerce-github-actions-role`
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: `pk_test_...`
 - `NEXT_PUBLIC_API_URL`: `/api/backend`
-- `NEXT_PUBLIC_ADMIN_DASHBOARD_URL`: `https://admin.hieudev.click`
+- `NEXT_PUBLIC_ADMIN_DASHBOARD_URL`: `https://admin.yourdomain.com`
 
 #### 3. Repository: `dashboard-admin-ecommern` (Admin Dashboard)
 Navigate to **Settings** > **Secrets and variables** > **Actions** > **New repository secret**:
-- `AWS_ROLE_ARN`: `arn:aws:iam::004285426030:role/prod-ecommerce-github-actions-role`
+- `AWS_ROLE_ARN`: `arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:role/prod-ecommerce-github-actions-role`
 - `VITE_CLERK_PUBLISHABLE_KEY`: `pk_test_...`
-- `VITE_API_BASE_URL`: `https://api.hieudev.click/v1`
-- `VITE_STOREFRONT_URL`: `https://store.hieudev.click`
+- `VITE_API_BASE_URL`: `https://api.yourdomain.com/v1`
+- `VITE_STOREFRONT_URL`: `https://store.yourdomain.com`
 
 ---
 
