@@ -10,6 +10,11 @@ metadata:
     app: storefront
 spec:
   replicas: {{ .Values.storefront.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: storefront
@@ -18,6 +23,7 @@ spec:
       labels:
         app: storefront
     spec:
+      terminationGracePeriodSeconds: 10
       containers:
         - name: storefront
           image: "{{ .Values.storefront.image }}:{{ .Values.storefront.tag }}"
@@ -52,6 +58,11 @@ metadata:
     app: admin-dashboard
 spec:
   replicas: {{ .Values.adminDashboard.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: admin-dashboard
@@ -60,6 +71,7 @@ spec:
       labels:
         app: admin-dashboard
     spec:
+      terminationGracePeriodSeconds: 10
       containers:
         - name: admin-dashboard
           image: "{{ .Values.adminDashboard.image }}:{{ .Values.adminDashboard.tag }}"

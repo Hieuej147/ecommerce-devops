@@ -10,6 +10,11 @@ metadata:
     app: agent-service
 spec:
   replicas: {{ .Values.agentService.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: agent-service
@@ -18,6 +23,7 @@ spec:
       labels:
         app: agent-service
     spec:
+      terminationGracePeriodSeconds: 10
       containers:
         - name: agent-service
           image: "{{ .Values.agentService.image }}:{{ .Values.agentService.tag }}"
@@ -54,6 +60,11 @@ metadata:
     app: agent-python
 spec:
   replicas: {{ .Values.agentPython.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: agent-python
@@ -62,6 +73,7 @@ spec:
       labels:
         app: agent-python
     spec:
+      terminationGracePeriodSeconds: 10
       containers:
         - name: agent-python
           image: "{{ .Values.agentPython.image }}:{{ .Values.agentPython.tag }}"

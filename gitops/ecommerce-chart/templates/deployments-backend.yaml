@@ -10,6 +10,11 @@ metadata:
     app: api-gateway
 spec:
   replicas: {{ .Values.apiGateway.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: api-gateway
@@ -18,6 +23,7 @@ spec:
       labels:
         app: api-gateway
     spec:
+      terminationGracePeriodSeconds: 10
       containers:
         - name: api-gateway
           image: "{{ .Values.apiGateway.image }}:{{ .Values.apiGateway.tag }}"
@@ -107,6 +113,11 @@ metadata:
     app: catalog
 spec:
   replicas: {{ .Values.catalog.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: catalog
@@ -115,6 +126,7 @@ spec:
       labels:
         app: catalog
     spec:
+      terminationGracePeriodSeconds: 10
       containers:
         - name: catalog
           image: "{{ .Values.catalog.image }}:{{ .Values.catalog.tag }}"
@@ -145,6 +157,11 @@ metadata:
     app: order
 spec:
   replicas: {{ .Values.order.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: order
@@ -153,6 +170,7 @@ spec:
       labels:
         app: order
     spec:
+      terminationGracePeriodSeconds: 10
       containers:
         - name: order
           image: "{{ .Values.order.image }}:{{ .Values.order.tag }}"
@@ -183,6 +201,11 @@ metadata:
     app: payment
 spec:
   replicas: {{ .Values.payment.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: payment
@@ -191,6 +214,7 @@ spec:
       labels:
         app: payment
     spec:
+      terminationGracePeriodSeconds: 10
       containers:
         - name: payment
           image: "{{ .Values.payment.image }}:{{ .Values.payment.tag }}"
@@ -231,6 +255,11 @@ metadata:
     app: users
 spec:
   replicas: {{ .Values.users.replicas }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: users
@@ -239,6 +268,7 @@ spec:
       labels:
         app: users
     spec:
+      terminationGracePeriodSeconds: 10
       containers:
         - name: users
           image: "{{ .Values.users.image }}:{{ .Values.users.tag }}"

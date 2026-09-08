@@ -9,6 +9,11 @@ metadata:
     app: inngest
 spec:
   replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: inngest
@@ -17,6 +22,7 @@ spec:
       labels:
         app: inngest
     spec:
+      terminationGracePeriodSeconds: 10
       containers:
         - name: inngest
           image: "{{ .Values.inngest.image }}"

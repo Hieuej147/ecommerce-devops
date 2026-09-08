@@ -120,6 +120,19 @@ redis:
       cpu: "250m"
       memory: "256Mi"
 
+#================== In-Cluster Inngest Dev Server (Port 8288 - $0 Free) ==================#
+inngest:
+  enabled: true
+  image: "inngest/inngest:v0.32.0"
+  port: 8288
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+
 #================== Customer Storefront (Next.js 16 Standalone - Port 3001) ==================#
 storefront:
   replicas: 1
@@ -150,9 +163,9 @@ adminDashboard:
       cpu: "250m"
       memory: "256Mi"
 
-# Ingress Configuration (AWS Load Balancer Controller)
+# Ingress Configuration (Disabled: Terraform provisions ALB + TargetGroupBindings manage targets)
 ingress:
-  enabled: true
+  enabled: false
   className: "alb"
   annotations:
     alb.ingress.kubernetes.io/scheme: internet-facing
