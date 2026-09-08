@@ -34,7 +34,6 @@ terraform.rc
 .vscode/
 
 # Architecture diagrams and local docs
-DEPLOYMENT_ARCHITECTURE.md
 
 # Production deployment files (local only)
 *.prod.yaml
