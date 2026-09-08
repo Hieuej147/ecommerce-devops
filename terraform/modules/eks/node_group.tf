@@ -13,8 +13,8 @@ resource "aws_eks_node_group" "node_group" {
   subnet_ids      = var.eks_subnet_ids
   ami_type        = "AL2023_x86_64_STANDARD"
   release_version = data.aws_ssm_parameter.eks_ami_release_version.value
-  capacity_type   = "SPOT"
-  instance_types  = ["t3.medium", "t3a.medium"]
+  capacity_type   = "ON_DEMAND"
+  instance_types  = ["t3.medium"]
 
   scaling_config {
     min_size     = 1
