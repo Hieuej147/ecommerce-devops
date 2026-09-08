@@ -31,11 +31,11 @@ resource "aws_ecr_lifecycle_policy" "ecr" {
     rules = [
       {
         rulePriority = 1
-        description  = "Keep last 5 tagged and untagged images to optimize storage costs"
+        description  = "Keep last 2 tagged and untagged images to optimize storage costs"
         selection = {
           tagStatus   = "any"
           countType   = "imageCountMoreThan"
-          countNumber = 5
+          countNumber = 2
         }
         action = {
           type = "expire"

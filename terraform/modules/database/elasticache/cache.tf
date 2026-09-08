@@ -28,7 +28,7 @@ resource "aws_elasticache_replication_group" "cache" {
   engine               = "valkey"
   engine_version       = "7.2"
   node_type            = "cache.t3.micro"
-  num_cache_clusters   = 2
+  num_cache_clusters   = 1
   port                 = 6379
 
   subnet_group_name    = aws_elasticache_subnet_group.subnet_group.name
