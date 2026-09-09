@@ -32,7 +32,7 @@ flowchart TD
         subgraph PrivateSubnets["Private Subnets (Không có Public IP - Bảo mật 100%)"]
             subgraph EKS["Amazon EKS Cluster v1.30 (Managed Node Group: 2x Spot Instances)"]
                 subgraph Frontends["Tầng Giao Diện (Frontend Pods)"]
-                    StorePod["storefront (Port 3001)\nNext.js 16 App Router\nReact 19, Tailwind v4, Three.js"]
+                    StorePod["storefront (Port 3001)\nNext.js 16 App Router\nReact 19, Tailwind v4"]
                     AdminPod["admin-dashboard (Port 80)\nReact 19 + Vite SPA\nNginx Alpine Web Server"]
                 end
 
@@ -108,7 +108,7 @@ flowchart TD
 
 | Luồng giao tiếp | Nguồn (Source) | Đích (Destination) | Giao thức / Port | Mục đích & Đặc tính kỹ thuật |
 | :--- | :--- | :--- | :--- | :--- |
-| **Storefront Web** | Trình duyệt khách | Cloudflare Edge ➔ ALB | HTTPS / Port 443 | Tải mã nguồn SSR Next.js 16, hiển thị 3D canvas |
+| **Storefront Web** | Trình duyệt khách | Cloudflare Edge ➔ ALB | HTTPS / Port 443 | Tải mã nguồn SSR Next.js 16, hiển thị giao diện mua sắm |
 | **Admin Backoffice** | Trình duyệt Admin | Cloudflare Zero Trust | HTTPS / Port 443 | Chặn cửa ngõ tại Edge, yêu cầu mã OTP email |
 | **API Gateway Ingress**| Web / Webhook | ALB ➔ Pod `api-gateway` | HTTP / Port 3000 | Định tuyến các request REST API công khai |
 | **Catalog gRPC** | Pod `api-gateway` | Pod `catalog-service` | **gRPC (HTTP/2) / 5001** | Truy vấn kho hàng, danh mục sản phẩm (< 5ms) |
