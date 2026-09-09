@@ -21,11 +21,12 @@ tags = {
 allowed_cidrs = ["0.0.0.0/0"]
 
 # List of GitHub repositories allowed to push images via AWS OIDC (no static AWS keys)
+# IMPORTANT: Replace 'your-github-username' with your actual GitHub username or organization!
 github_repositories = [
-  "Hieuej147/ecommerce-backend",
-  "Hieuej147/-E-commerce",
-  "Hieuej147/dashboard-admin-ecommern"
+  "your-github-username/ecommerce-backend",
+  "your-github-username/-E-commerce",
+  "your-github-username/dashboard-admin-ecommern"
 ]
 
 # GitOps Helm Manifest Repository
-helm_repo = "https://github.com/Hieuej147/ecommerce-devops.git"
+helm_repo = "https://github.com/your-github-username/ecommerce-devops.git"

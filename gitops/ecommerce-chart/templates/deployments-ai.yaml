@@ -93,11 +93,5 @@ spec:
                   name: ecommerce-secrets
                   key: OPENAI_API_KEY
                   optional: true
-            - name: GEMINI_API_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: ecommerce-secrets
-                  key: GEMINI_API_KEY
-                  optional: true
           resources:
             {{- toYaml .Values.agentPython.resources | nindent 12 }}

@@ -63,13 +63,13 @@ resource "aws_lb_target_group" "api_gateway" {
 
   health_check {
     interval            = 20
-    path                = "/docs"
+    path                = "/health"
     port                = "traffic-port"
     protocol            = "HTTP"
     timeout             = 5
     healthy_threshold   = 2
     unhealthy_threshold = 3
-    matcher             = "200-399"
+    matcher             = "200"
   }
 
   tags = merge(var.tags, {
