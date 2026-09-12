@@ -14,6 +14,7 @@
 > **Architecture Reference:** Inspired by and adapted from the e-commerce architecture patterns in [Jayce-Anh/shopping-cart-project](https://github.com/Jayce-Anh/shopping-cart-project) (originally based on [sivaprasadreddy/spring-boot-microservices-series](https://github.com/sivaprasadreddy/spring-boot-microservices-series.git)).
 
 ### Key Adaptations & Customizations:
+
 1. **Decoupled 4-Repository Ecosystem**: Separated the single monorepo into 4 focused repositories (Backend, Storefront, Admin Dashboard, and DevOps) with independent CI/CD lifecycles.
 2. **Modern Web Stack**: Replaced legacy Java 8 / Spring Boot with **NestJS 11 (TypeScript)**, **gRPC (Protocol Buffers)**, **Next.js 16 (React 19)**, and **Vite SPA**.
 3. **Lean Direct GitOps Rollout (No Heavy ArgoCD)**: Rather than running ArgoCD controllers inside EKS (which consume significant RAM on small clusters), deployments use **GitHub Actions with AWS IAM OIDC** to build, push to ECR, and execute `kubectl rollout restart` with zero downtime.
@@ -27,12 +28,12 @@
 
 This project is part of an integrated 4-part microservices platform:
 
-| Repository | Tech Stack | Role & Link |
-| :--- | :--- | :--- |
-| **Backend Monorepo** | NestJS 11, gRPC, PostgreSQL, Prisma, Inngest | REST API Gateway, 5 gRPC microservices, Python AI agent, Stripe & Clerk webhooks. <br>🔗 Repo: [`ecommerce-backend`](https://github.com/Hieuej147/ecommerce-backend.git) |
-| **Customer Storefront** | Next.js 16, React 19, Tailwind v4 | Customer shop, responsive featured hero banner, cart, Stripe checkout. <br>🔗 Repo: [`-E-commerce`](https://github.com/Hieuej147/-E-commerce.git) |
-| **Admin Dashboard** | React 19, Vite, TypeScript, Cloudflare Zero Trust | Backoffice management, real-time KPI metrics, orders & catalog CRUD. <br>🔗 Repo: [`dashboard-admin-ecommern`](https://github.com/Hieuej147/dashboard-admin-ecommern.git) |
-| **DevOps & GitOps** *(This Repo)* | Terraform, Helm, AWS EKS, AWS ECR, OIDC | Infrastructure as Code, OIDC authentication, ECR registries, Kubernetes manifests. <br>🔗 Repo: [`ecommerce-devops`](https://github.com/Hieuej147/ecommerce-devops.git) |
+| Repository                        | Tech Stack                                        | Role & Link                                                                                                                                                               |
+| :-------------------------------- | :------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Backend Monorepo**              | NestJS 11, gRPC, PostgreSQL, Prisma, Inngest      | REST API Gateway, 5 gRPC microservices, Python AI agent, Stripe & Clerk webhooks. <br>🔗 Repo: [`ecommerce-backend`](https://github.com/Hieuej147/ecommerce-backend.git)  |
+| **Customer Storefront**           | Next.js 16, React 19, Tailwind v4                 | Customer shop, responsive featured hero banner, cart, Stripe checkout. <br>🔗 Repo: [`-E-commerce`](https://github.com/Hieuej147/E-commerce)                              |
+| **Admin Dashboard**               | React 19, Vite, TypeScript, Cloudflare Zero Trust | Backoffice management, real-time KPI metrics, orders & catalog CRUD. <br>🔗 Repo: [`dashboard-admin-ecommern`](https://github.com/Hieuej147/dashboard-admin-ecommern.git) |
+| **DevOps & GitOps** _(This Repo)_ | Terraform, Helm, AWS EKS, AWS ECR, OIDC           | Infrastructure as Code, OIDC authentication, ECR registries, Kubernetes manifests. <br>🔗 Repo: [`ecommerce-devops`](https://github.com/Hieuej147/ecommerce-devops.git)   |
 
 ---
 
@@ -96,16 +97,16 @@ AWS VPC     │                  │             │             │
 
 ## 🛠️ AWS Services & Architectural Optimizations
 
-| AWS Component | Configuration | Architectural Strategy & Purpose |
-| :--- | :--- | :--- |
-| **Amazon EKS** | v1.30 Cluster + Managed Node Group | Elastic container orchestration hosting 11 pods across frontend, backend, and data services. |
-| **Worker Nodes** | 2x `t3.small` Instances | Balanced CPU/memory allocation with resource limits per container to maximize density. |
-| **Amazon RDS PostgreSQL** | `db.t4g.micro` (PostgreSQL 16) | Shared multi-database setup (`ecommerce_catalog`, `ecommerce_orders`, etc.) with `skip_final_snapshot` and zero unattached storage waste. |
-| **Application Load Balancer** | 1 Shared Public ALB | Host-based routing directs traffic to 3 services via `TargetGroupBinding` without provisioning multiple costly load balancers. |
-| **Amazon ECR** | 9 Private Repositories | Lifecycle policies automatically keep only the latest 2 image tags per repository to minimize storage costs. |
-| **In-Cluster Redis 7** | Alpine Linux container on EKS | Replaces expensive managed cache services while keeping latency under 2ms for internal caching. |
-| **Cloudflare Edge** | Universal SSL + Zero Trust | Free SSL termination and email OTP authentication layer protecting backoffice access. |
-| **GitHub Actions OIDC** | Short-lived AWS IAM Web Identity | Eliminates static `AWS_ACCESS_KEY_ID` storage in GitHub; runners assume temporary roles securely. |
+| AWS Component                 | Configuration                      | Architectural Strategy & Purpose                                                                                                          |
+| :---------------------------- | :--------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------- |
+| **Amazon EKS**                | v1.30 Cluster + Managed Node Group | Elastic container orchestration hosting 11 pods across frontend, backend, and data services.                                              |
+| **Worker Nodes**              | 2x `t3.small` Instances            | Balanced CPU/memory allocation with resource limits per container to maximize density.                                                    |
+| **Amazon RDS PostgreSQL**     | `db.t4g.micro` (PostgreSQL 16)     | Shared multi-database setup (`ecommerce_catalog`, `ecommerce_orders`, etc.) with `skip_final_snapshot` and zero unattached storage waste. |
+| **Application Load Balancer** | 1 Shared Public ALB                | Host-based routing directs traffic to 3 services via `TargetGroupBinding` without provisioning multiple costly load balancers.            |
+| **Amazon ECR**                | 9 Private Repositories             | Lifecycle policies automatically keep only the latest 2 image tags per repository to minimize storage costs.                              |
+| **In-Cluster Redis 7**        | Alpine Linux container on EKS      | Replaces expensive managed cache services while keeping latency under 2ms for internal caching.                                           |
+| **Cloudflare Edge**           | Universal SSL + Zero Trust         | Free SSL termination and email OTP authentication layer protecting backoffice access.                                                     |
+| **GitHub Actions OIDC**       | Short-lived AWS IAM Web Identity   | Eliminates static `AWS_ACCESS_KEY_ID` storage in GitHub; runners assume temporary roles securely.                                         |
 
 ---
 
@@ -152,6 +153,7 @@ ecommerce-devops/
 ### Prerequisites
 
 Install the following tools on your machine:
+
 - **AWS CLI v2** ([docs.aws.amazon.com/cli](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)) — run `aws configure` with your credentials.
 - **Terraform v1.9+** ([terraform.io/downloads](https://www.terraform.io/downloads)).
 - **kubectl v1.30+** ([kubernetes.io/docs](https://kubernetes.io/docs/tasks/tools/)).
@@ -162,12 +164,14 @@ Install the following tools on your machine:
 ### Phase 1: Provision AWS Infrastructure (Terraform)
 
 1. Navigate to the terraform directory:
+
    ```bash
    cd terraform
    cp terraform.tfvars.example terraform.tfvars
    ```
 
 2. Edit `terraform.tfvars`:
+
    ```hcl
    project = {
      name       = "ecommerce"
@@ -187,6 +191,7 @@ Install the following tools on your machine:
    ```
 
 3. Initialize and provision:
+
    ```bash
    terraform init
    terraform plan -out=tfplan
@@ -209,7 +214,8 @@ aws eks update-kubeconfig --region ap-southeast-1 --name ecommerce
 # Verify nodes are ready
 kubectl get nodes -o wide
 ```
-*Expected: 2 nodes in `Ready` status.*
+
+_Expected: 2 nodes in `Ready` status._
 
 ---
 
@@ -218,12 +224,14 @@ kubectl get nodes -o wide
 In Kubernetes, environment variables are managed securely via Secrets rather than a plain `.env` file.
 
 1. **Create the Namespace**:
+
    ```bash
    kubectl create namespace ecommerce || true
    ```
 
 2. **Create Kubernetes Secrets (`ecommerce-secrets`)**:
    This secret acts as the production `.env` for all microservices in the cluster. Replace placeholders with your real values:
+
    ```bash
    kubectl create secret generic ecommerce-secrets -n ecommerce \
      --from-literal=DATABASE_URL="postgresql://postgres:<RDS_PASSWORD>@<RDS_ENDPOINT>:5432/ecommerce?schema=public" \
@@ -240,6 +248,7 @@ In Kubernetes, environment variables are managed securely via Secrets rather tha
    ```
 
 3. **Deploy In-Cluster Redis & Inngest**:
+
    ```bash
    kubectl apply -f ../gitops/ecommerce-chart/templates/deployment-redis.yaml
    kubectl apply -f ../gitops/ecommerce-chart/templates/deployment-inngest.yaml
@@ -269,7 +278,7 @@ Only **3 CNAME records** are needed (Inngest and internal services remain comple
    - Application Name: `Admin Backoffice`
    - Application Domain: `admin.yourdomain.com`
    - Policy: Action `Allow`, Rule: Include `Emails` → enter your administrator email.
-   - *Result: Anyone opening `admin.yourdomain.com` must enter a 6-digit email OTP PIN before accessing the application.*
+   - _Result: Anyone opening `admin.yourdomain.com` must enter a 6-digit email OTP PIN before accessing the application._
 
 ---
 
@@ -278,16 +287,19 @@ Only **3 CNAME records** are needed (Inngest and internal services remain comple
 In each of your 3 application repositories, go to **Settings** > **Secrets and variables** > **Actions** > **New repository secret**:
 
 #### 1. Repository: `ecommerce-backend`
+
 - `AWS_ROLE_ARN`: `arn:aws:iam::<YOUR_ACCOUNT_ID>:role/prod-ecommerce-github-actions-role`
 
 #### 2. Repository: `-E-commerce` (Storefront)
+
 - `AWS_ROLE_ARN`: `arn:aws:iam::<YOUR_ACCOUNT_ID>:role/prod-ecommerce-github-actions-role`
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: `pk_test_...`
 - `NEXT_PUBLIC_API_URL`: `/api/backend`
 - `NEXT_PUBLIC_ADMIN_DASHBOARD_URL`: `https://admin.yourdomain.com`
 
 #### 3. Repository: `dashboard-admin-ecommern` (Admin Dashboard)
-- `AWS_ROLE_ARN`: *(same as above)*
+
+- `AWS_ROLE_ARN`: _(same as above)_
 - `VITE_CLERK_PUBLISHABLE_KEY`: `pk_test_...`
 - `VITE_API_BASE_URL`: `https://api.yourdomain.com/v1`
 - `VITE_STOREFRONT_URL`: `https://store.yourdomain.com`
@@ -297,17 +309,20 @@ In each of your 3 application repositories, go to **Settings** > **Secrets and v
 ### Phase 6: Push & Verify Automated Deployment
 
 Commit and push to `main` on any of the 3 repositories. GitHub Actions will automatically:
+
 1. Authenticate to AWS via OIDC (zero static keys).
 2. Build multi-stage Docker images and push to Amazon ECR.
 3. Connect to Amazon EKS and execute a zero-downtime rolling update (`kubectl rollout restart`).
 
 Verify all 11 pods are running:
+
 ```bash
 kubectl get pods -n ecommerce
 # Expected: All 11 pods in '1/1 Running' status
 ```
 
 Verify your public endpoints:
+
 - Customer Storefront: `https://store.yourdomain.com`
 - Admin Dashboard: `https://admin.yourdomain.com` (OTP prompted)
 - API Gateway Health: `https://api.yourdomain.com/health`
